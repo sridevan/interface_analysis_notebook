@@ -1,0 +1,23 @@
+# Runtime dependencies for the Aggregated Interface Interaction Analysis notebook.
+# Tested with Python 3.11.
+
+# Numerics / data
+numpy>=2.0
+pandas>=2.2
+scipy>=1.13
+
+# HTTP
+requests>=2.31
+
+# Plotting
+matplotlib>=3.8
+seaborn>=0.13
+
+# Notebook + interactive widgets
+jupyter>=1.0
+notebook>=7.0
+ipykernel>=6.29
+ipywidgets>=8.1
+
+# Mol* (Phase 6 structural visualisation)
+molviewspec>=1.8
