@@ -42,7 +42,7 @@ def visualize_interface(
       different value to change it; pass an item of `PARTNER_COLOURS` to
       get the older per-chain coloring back manually.
     - Interface residues drawn as ball-and-stick using the chain's colour
-      (cornflowerblue / lightcoral) — chain identity is read off the
+      (cornflowerblue / lightcoral); chain identity is read off the
       stick colour, not the surface colour.
     - `stick_size_factor` (default 0.5) scales both ball radii and stick
       radii proportionally; MVS exposes a single size_factor that
@@ -79,7 +79,7 @@ def visualize_interface(
         for i, chain in enumerate(chain_list)
     }
 
-    # Semi-transparent gray surface for both chains — neutral backdrop so
+    # Semi-transparent gray surface for both chains, a neutral backdrop so
     # the colored interface residues pop visually.
     for chain in chain_list:
         (
@@ -89,7 +89,7 @@ def visualize_interface(
             .opacity(opacity=surface_opacity)
         )
 
-    # Ball-and-stick on interface residues — one consolidated component
+    # Ball-and-stick on interface residues, one consolidated component
     # per chain so the spec stays compact.
     by_chain: dict[str, list[int]] = {}
     for chain, resnum in interface_residues:
@@ -271,7 +271,7 @@ def visualize_clusters_grid(
         rep_res = rep_meta.get("resolution")
         res_str = f", {rep_res:.2f} Å" if rep_res is not None else ""
         display(Markdown(
-            f"### Cluster {cid} (n={sizes[cid]}) — representative `{rep.pdb_id}` "
+            f"### Cluster {cid} (n={sizes[cid]}), representative `{rep.pdb_id}` "
             f"(assembly {rep.assembly_id}, interface {rep.interface_id}{res_str})"
         ))
         visualize_interface(

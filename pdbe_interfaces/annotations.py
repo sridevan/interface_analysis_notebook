@@ -1,4 +1,4 @@
-"""Annotation enrichment: mutations, modifications, ligands.
+"""Annotation overlap: mutations, modifications, ligands.
 
 Joins each annotation stream onto interface residues by author key. Annotations
 falling outside the interface are dropped (this is an interface-comparison
@@ -81,41 +81,40 @@ def filter_bound_molecules(
     return surviving
 
 
-def collect_ligand_contacts(
-    pdb_id: str, surviving_ligands: list[dict],
-) -> list[LigandContact]:
-    """For each surviving ligand instance, fetch interactions and expand.
+def _parse_ligand_interactions(
+    pdb_id: str,
+    lig: dict,
+    bm_objects: list[dict],
+    contacts: set[tuple],
+) -> None:
+    """Expand one ligand instance's interactions into `contacts` (in place).
 
     Atom-level records with multiple `interaction_details` labels are expanded
     so each label produces a separate element. Atom-level detail is then
-    collapsed: multiple atom-level records sharing the same
+    collapsed by the set: multiple atom-level records sharing the same
     (interface residue, ligand instance, contact_type) key aggregate to one.
     """
-    contacts: set[tuple] = set()
-    chem_comp_by_instance: dict[tuple, str] = {}
-    for lig in surviving_ligands:
-        bm_objects = api.fetch_ligand_interactions(
-            pdb_id, lig["chain_id"], lig["author_residue_number"],
-        )
-        for bm in bm_objects:
-            lig_meta = bm.get("ligand") or {}
-            lig_chem = lig_meta.get("chem_comp_id") or lig["chem_comp_id"]
-            lig_chain = lig_meta.get("chain_id") or lig["chain_id"]
-            lig_resnum = int(lig_meta.get("author_residue_number") or lig["author_residue_number"])
-            instance_key = (lig_chem, lig_chain, lig_resnum)
-            chem_comp_by_instance[instance_key] = lig_chem
-            for it in bm.get("interactions") or []:
-                end = it.get("end") or {}
-                if end.get("chain_id") is None or end.get("author_residue_number") is None:
-                    continue
-                residue_key: AuthorResidueKey = (
-                    pdb_id,
-                    end["chain_id"],
-                    int(end["author_residue_number"]),
-                    _norm_ins(end.get("author_insertion_code")),
-                )
-                for ctype in it.get("interaction_details") or []:
-                    contacts.add((residue_key, instance_key, ctype))
+    for bm in bm_objects:
+        lig_meta = bm.get("ligand") or {}
+        lig_chem = lig_meta.get("chem_comp_id") or lig["chem_comp_id"]
+        lig_chain = lig_meta.get("chain_id") or lig["chain_id"]
+        lig_resnum = int(lig_meta.get("author_residue_number") or lig["author_residue_number"])
+        instance_key = (lig_chem, lig_chain, lig_resnum)
+        for it in bm.get("interactions") or []:
+            end = it.get("end") or {}
+            if end.get("chain_id") is None or end.get("author_residue_number") is None:
+                continue
+            residue_key: AuthorResidueKey = (
+                pdb_id,
+                end["chain_id"],
+                int(end["author_residue_number"]),
+                _norm_ins(end.get("author_insertion_code")),
+            )
+            for ctype in it.get("interaction_details") or []:
+                contacts.add((residue_key, instance_key, ctype))
+
+
+def _contacts_from_set(contacts: set[tuple]) -> list[LigandContact]:
     return [
         LigandContact(
             interface_residue=residue_key,
@@ -126,6 +125,72 @@ def collect_ligand_contacts(
         )
         for (residue_key, instance_key, ctype) in contacts
     ]
+
+
+def collect_ligand_contacts(
+    pdb_id: str,
+    surviving_ligands: list[dict],
+    max_workers: int = api.DEFAULT_MAX_WORKERS,
+) -> list[LigandContact]:
+    """For each surviving ligand instance, fetch interactions and expand.
+
+    The per-ligand fetches run concurrently. For many entries at once prefer
+    `collect_ligand_contacts_for_entries`, which pools every entry's ligands
+    together so entries with a single ligand do not each pay a serial round
+    trip.
+    """
+    keys = [
+        (pdb_id, lig["chain_id"], lig["author_residue_number"])
+        for lig in surviving_ligands
+    ]
+    responses = api.fetch_ligand_interactions_many(keys, max_workers=max_workers)
+    contacts: set[tuple] = set()
+    for lig, bm_objects in zip(surviving_ligands, responses):
+        _parse_ligand_interactions(pdb_id, lig, bm_objects, contacts)
+    return _contacts_from_set(contacts)
+
+
+def collect_ligand_contacts_for_entries(
+    pdb_ids: list[str],
+    blocklist: frozenset[str],
+    drop_carbohydrate_polymers: bool = False,
+    max_workers: int = api.DEFAULT_MAX_WORKERS,
+) -> dict[str, list[LigandContact]]:
+    """Ligand contacts for many entries -> {pdb_id: [LigandContact]}.
+
+    Two concurrent phases: one `bound_molecules` call per entry, then one
+    interactions call per surviving ligand instance. The second phase pools the
+    ligands of *all* entries into a single flat batch, so an entry with fifty
+    ligands and an entry with one are balanced across the same workers instead
+    of being processed entry by entry.
+
+    Entries with no surviving ligands still get a (empty) key in the result.
+    """
+    pdb_ids = list(pdb_ids)
+    bm_by_pdb = api.fetch_bound_molecules_many(pdb_ids, max_workers=max_workers)
+
+    tasks: list[tuple[str, dict]] = []
+    for pdb_id in pdb_ids:
+        surviving = filter_bound_molecules(
+            bm_by_pdb.get(pdb_id) or [],
+            blocklist=blocklist,
+            drop_carbohydrate_polymers=drop_carbohydrate_polymers,
+        )
+        tasks.extend((pdb_id, lig) for lig in surviving)
+
+    log.info(
+        "Ligand interactions: %d instances across %d entries",
+        len(tasks), len(pdb_ids),
+    )
+    responses = api.fetch_ligand_interactions_many(
+        [(pdb_id, lig["chain_id"], lig["author_residue_number"]) for pdb_id, lig in tasks],
+        max_workers=max_workers,
+    )
+
+    contacts_by_pdb: dict[str, set[tuple]] = {pdb_id: set() for pdb_id in pdb_ids}
+    for (pdb_id, lig), bm_objects in zip(tasks, responses):
+        _parse_ligand_interactions(pdb_id, lig, bm_objects, contacts_by_pdb[pdb_id])
+    return {pdb_id: _contacts_from_set(c) for pdb_id, c in contacts_by_pdb.items()}
 
 
 def overlap_annotations(

@@ -101,14 +101,51 @@ def label_for_record(
     return label
 
 
+def describe_complex(
+    complex_id: str,
+    details: dict,
+    partner_map: dict,
+    assembly_metadata: dict,
+    identifier: str | None = None,
+) -> str:
+    """Human-readable summary of the resolved complex."""
+    lines = []
+    if identifier and identifier.strip().upper() != complex_id.upper():
+        lines.append(f"Resolved {identifier} to {complex_id}")
+    lines += [
+        f"Complex: {details.get('name')} ({complex_id})",
+        f"Oligomeric state: {details.get('oligomeric_state')}",
+        f"Partners: {partner_map}",
+        f"Assembly metadata for {len(assembly_metadata)} (pdb_id, assembly_id) pairs",
+    ]
+    return "\n".join(lines)
+
+
+def interface_summary_table(records: list[InterfaceRecord]) -> pd.DataFrame:
+    """One row per interface: pair counts and residues lost in mapping."""
+    return pd.DataFrame([
+        {
+            "pdb_id": r.pdb_id,
+            "assembly_id": r.assembly_id,
+            "interface_id": r.interface_id,
+            "n_author_pairs": len(r.author_pairs),
+            "n_uniprot_pairs": len(r.uniprot_pairs),
+            "n_dropped_no_uniprot": r.n_residues_dropped_no_uniprot,
+            "n_microheterogeneity": r.n_microheterogeneity_collisions,
+        }
+        for r in records
+    ])
+
+
 def build_structure_table(
     records: list[InterfaceRecord],
     cluster_result: ClusterResult,
     overlap: AnnotationOverlap,
     partner_map: dict[tuple[str, int], str],
-    fetch_date: str,
+    fetch_date: str | None = None,
     assembly_metadata: dict[tuple[str, str], dict] | None = None,
 ) -> pd.DataFrame:
+    fetch_date = fetch_date or date.today().isoformat()
     rows = []
     metadata = assembly_metadata or {}
     for i, r in enumerate(records):
@@ -326,21 +363,38 @@ def _merge_residue_identity(records: list[InterfaceRecord]) -> dict:
     return merged
 
 
+# A cluster whose median resolution is this many Angstroms worse than the
+# dominant cluster's gets a QC flag: hydrogen-bond detection is resolution
+# dependent, so "lost" contacts may be undetected rather than absent.
+DEFAULT_RESOLUTION_GAP_A = 1.0
+
+
+def _resolutions_of(members: list[InterfaceRecord], metadata: dict) -> list[float]:
+    out: list[float] = []
+    for m in members:
+        res = (metadata.get((m.pdb_id, m.assembly_id), {}) or {}).get("resolution")
+        if res is not None:
+            out.append(float(res))
+    return out
+
+
 def cluster_interpretation_report(
     records: list[InterfaceRecord],
     cluster_result: ClusterResult,
     overlap: AnnotationOverlap,
     assembly_metadata: dict[tuple[str, str], dict] | None = None,
     partner_map: dict[tuple[str, int], str] | None = None,
-    min_count: int = 2,
-    min_enrichment: float = 2.0,
+    min_interfaces: int = 1,
     top_n_contacts: int = 10,
     conservation_threshold: float = 0.8,
     sparse_pair_threshold: int = DEFAULT_SPARSE_PAIR_THRESHOLD,
     tiny_area_threshold_a2: float = DEFAULT_TINY_AREA_THRESHOLD_A2,
     range_overlap_min: float = DEFAULT_RANGE_OVERLAP_MIN,
+    resolution_gap_a: float = DEFAULT_RESOLUTION_GAP_A,
 ) -> pd.DataFrame:
     """One row per candidate interface interaction state (cluster).
+
+    Rows are ordered by cluster size descending, ties broken by cluster id.
 
     Each cluster is treated as a candidate interface interaction state. For
     each cluster the report surfaces:
@@ -355,14 +409,25 @@ def cluster_interpretation_report(
       typed contacts present in >= `conservation_threshold` of cluster
       members, capped at the top 10 by frequency.
 
-    Enriched contacts:
-      typed contacts whose distinct-interface count inside the cluster is
-      >= `min_count` AND at least `min_enrichment`-fold more frequent than
-      outside, OR exclusive to the cluster with >=1 member.
+    Cluster contacts (`cluster_contacts`):
+      every typed contact present in the cluster, with the count inside the
+      cluster and the count in the rest of the dataset shown side by side, at
+      both interface and distinct-PDB-entry level. Ordered by in-cluster
+      frequency and truncated to `top_n_contacts`; `cluster_contacts_shown` /
+      `cluster_contacts_total` report how much was hidden.
 
-    Annotation enrichment:
-      mutations / modifications / ligand-contact ids that satisfy the same
-      enrichment rule (computed from `overlap`).
+      There is deliberately **no enrichment statistic here**. Clusters are
+      defined by Jaccard similarity over these same typed contacts, so testing
+      them against the clustering is circular by construction, since a cluster
+      cannot fail to look enriched for the contacts that separated it. The
+      counts are reported and the reader judges.
+
+    Cluster annotations (`cluster_mutations` / `cluster_modifications` /
+    `cluster_ligands`):
+      the same treatment for each annotation stream. These are not circular,
+      since annotations never enter the clustering, but the structures are not
+      independent samples either (repeated assemblies, laboratory-correlated
+      depositions), so these are also reported as counts, not as tests.
 
     QC warnings:
       - singleton cluster
@@ -371,10 +436,14 @@ def cluster_interpretation_report(
       - residue range poorly overlaps the dominant (largest) cluster, which
         can flag polyprotein / processed-product / domain mixups within a
         single UniProt accession.
+      - median resolution more than `resolution_gap_a` worse than the dominant
+        cluster's, where missing contacts may be a detection artefact rather
+        than a real difference in binding.
 
-    Backward-compat: existing columns (`enriched_*`, `interfaces_with_*`,
-    `annotation_correlate_present`, `notes`) are preserved. New columns are
-    appended; downstream consumers that select by name continue to work.
+    Column names changed when the enrichment statistics were removed:
+    `enriched_mutations` / `enriched_modifications` / `enriched_ligands` /
+    `enriched_contacts` are now `cluster_*`, and
+    `annotation_correlate_present` is now `has_annotations`.
     """
     cluster_of = {
         r.key: int(cluster_result.flat_assignment[i])
@@ -401,9 +470,17 @@ def cluster_interpretation_report(
         _cluster_residue_ranges(by_cluster[dominant_cid])
         if dominant_cid is not None else None
     )
+    dominant_resolutions = (
+        _resolutions_of(by_cluster[dominant_cid], metadata)
+        if dominant_cid is not None else None
+    )
 
     rows = []
-    for cid, members in sorted(by_cluster.items()):
+    # Largest state first: cluster ids come from `fcluster` and carry no
+    # meaning in their numeric order, whereas size orders the report by how
+    # much evidence each state rests on, and pushes singletons to the end.
+    # Ties broken by cluster id so repeated runs order identically.
+    for cid, members in sorted(by_cluster.items(), key=lambda kv: (-len(kv[1]), kv[0])):
         member_keys = {r.key for r in members}
         non_member_keys = all_keys - member_keys
         non_member_records = [r for r in records if r.key not in member_keys]
@@ -450,28 +527,31 @@ def cluster_interpretation_report(
 
         core = _core_contacts(members, conservation_threshold, top_n=10)
 
-        contact_enriched = _enriched_contacts(
-            members, non_member_records, min_count, min_enrichment, top_n_contacts,
+        member_entries = {r.pdb_id for r in members}
+        non_member_entries = {r.pdb_id for r in non_member_records}
+
+        contact_profile, n_contacts_total = _contact_profile(
+            members, non_member_records, min_interfaces, top_n_contacts,
         )
 
-        mut_enriched = _enriched_labels(
+        mut_profile = _label_profile(
             overlap.mutations, member_keys, non_member_keys,
-            "mutation_label", min_count, min_enrichment,
+            "mutation_label", member_entries, non_member_entries,
         )
-        mod_enriched = _enriched_labels(
+        mod_profile = _label_profile(
             overlap.modifications, member_keys, non_member_keys,
-            "modification_chem_comp_id", min_count, min_enrichment,
+            "modification_chem_comp_id", member_entries, non_member_entries,
         )
-        lig_enriched = _enriched_labels(
+        lig_profile = _label_profile(
             overlap.ligands, member_keys, non_member_keys,
-            "ligand_chem_comp_id", min_count, min_enrichment,
+            "ligand_chem_comp_id", member_entries, non_member_entries,
         )
 
         n_with_mut = len(_member_interfaces_with(overlap.mutations, member_keys))
         n_with_mod = len(_member_interfaces_with(overlap.modifications, member_keys))
         n_with_lig = len(_member_interfaces_with(overlap.ligands, member_keys))
 
-        has_signature = bool(mut_enriched or mod_enriched or lig_enriched)
+        has_annotations = bool(mut_profile or mod_profile or lig_profile)
 
         # QC. The dominant cluster is always compared against itself, so the
         # range-overlap rule is skipped for it (overlap = 1.0 by construction).
@@ -483,11 +563,14 @@ def cluster_interpretation_report(
             sparse_pair_threshold=sparse_pair_threshold,
             tiny_area_threshold_a2=tiny_area_threshold_a2,
             range_overlap_min=range_overlap_min,
+            resolutions=resolutions,
+            dominant_resolutions=(None if cid == dominant_cid else dominant_resolutions),
+            resolution_gap_a=resolution_gap_a,
         )
 
         notes = _build_notes(
             cid, len(members), len(non_member_keys),
-            mut_enriched, mod_enriched, lig_enriched,
+            mut_profile, mod_profile, lig_profile,
             n_with_mut, n_with_mod, n_with_lig,
             methods_str, resolution_str,
             pair_stats=pair_stats,
@@ -498,6 +581,8 @@ def cluster_interpretation_report(
             warnings=warns,
             partner_map=pmap,
             residue_identity=residue_identity,
+            contact_profile=contact_profile,
+            n_contacts_total=n_contacts_total,
         )
 
         rows.append({
@@ -521,14 +606,16 @@ def cluster_interpretation_report(
             "interface_area_max": area_stats["max"],
             "contact_density_median": contact_density_median,
             "core_contacts": _format_core_contacts(core, pmap, residue_identity),
-            "enriched_mutations": _format_enriched(mut_enriched),
-            "enriched_modifications": _format_enriched(mod_enriched),
-            "enriched_ligands": _format_enriched(lig_enriched),
-            "enriched_contacts": _format_contacts(contact_enriched, pmap, residue_identity),
+            "cluster_mutations": _format_profile(mut_profile),
+            "cluster_modifications": _format_profile(mod_profile),
+            "cluster_ligands": _format_profile(lig_profile),
+            "cluster_contacts": _format_contacts(contact_profile, pmap, residue_identity),
+            "cluster_contacts_shown": len(contact_profile),
+            "cluster_contacts_total": n_contacts_total,
             "interfaces_with_any_mutation": n_with_mut,
             "interfaces_with_any_modification": n_with_mod,
             "interfaces_with_any_ligand": n_with_lig,
-            "annotation_correlate_present": has_signature,
+            "has_annotations": has_annotations,
             "qc_warnings": "; ".join(warns),
             "notes": notes,
         })
@@ -645,7 +732,7 @@ def _interval_overlap_fraction(
     """Overlap length / span of the larger interval. Returns 0 if no overlap.
 
     Span uses the larger of the two ranges so that a small range entirely
-    contained in a large range does not score 1.0 — we want to detect when a
+    contained in a large range does not score 1.0, because we want to detect when a
     cluster's residues sit in a different region of the protein, not when
     they're a focused subset.
     """
@@ -654,7 +741,7 @@ def _interval_overlap_fraction(
     overlap = max(0, hi - lo)
     span = max(a[1] - a[0], b[1] - b[0])
     if span <= 0:
-        # Both ranges are single residues — return 1.0 if equal, else 0.
+        # Both ranges are single residues: return 1.0 if equal, else 0.
         return 1.0 if a == b else 0.0
     return overlap / span
 
@@ -669,6 +756,9 @@ def _qc_warnings(
     sparse_pair_threshold: int,
     tiny_area_threshold_a2: float,
     range_overlap_min: float,
+    resolutions: list[float] | None = None,
+    dominant_resolutions: list[float] | None = None,
+    resolution_gap_a: float = DEFAULT_RESOLUTION_GAP_A,
 ) -> list[str]:
     """Cluster-level QC flags per the spec."""
     warns: list[str] = []
@@ -700,61 +790,94 @@ def _qc_warnings(
                     "segment"
                 )
                 break
+    # Resolution confounding: hydrogen bonds are geometry-derived, so a cluster
+    # resolved substantially worse than the dominant one may differ because
+    # contacts went undetected, not because the interface changed.
+    if resolutions and dominant_resolutions:
+        median_res = statistics.median(resolutions)
+        dominant_median = statistics.median(dominant_resolutions)
+        if median_res - dominant_median > resolution_gap_a:
+            warns.append(
+                f"median resolution {median_res:.2f} A vs {dominant_median:.2f} A for the "
+                "dominant cluster; missing contacts here may be undetected rather than absent"
+            )
     return warns
 
 
-def _enriched_contacts(
+def _contact_profile(
     member_records: list[InterfaceRecord],
     non_member_records: list[InterfaceRecord],
-    min_count: int,
-    min_enrichment: float,
+    min_interfaces: int,
     top_n: int,
-) -> list[dict]:
-    """Find UniProt-keyed interaction-pair tuples enriched in cluster.
+) -> tuple[list[dict], int]:
+    """Describe the contacts of one cluster. No test, no threshold on effect.
 
-    A tuple is `((unp_acc_1, pos_1, role_1), (unp_acc_2, pos_2, role_2), bond_type)`.
-    Counts are by distinct cluster-member interfaces containing the tuple.
-    Same enrichment rules as annotations: in-count >= min_count AND
-    enrichment >= min_enrichment, OR exclusive to cluster with in-count >= 1.
+    For every typed contact tuple present in the cluster, report how many
+    cluster members carry it and how many non-members do, at two levels of
+    aggregation:
+
+    - *interfaces*: the unit the clustering operates on;
+    - *entries*: distinct PDB entries, which de-duplicates the case of one
+      deposition contributing several assemblies of the same coordinates.
+
+    Deliberately no fold-enrichment, p-value, or significance filter. Clusters
+    are defined by Jaccard similarity over these same tuples, so any statistic
+    testing them against the clustering is circular by construction: a cluster
+    cannot fail to appear enriched for the contacts that separated it. The
+    counts are reported side by side and the reader judges.
+
+    Returns (rows, n_total) where `n_total` is the number of contacts before
+    `top_n` truncation, so callers can say how much was hidden.
     """
     in_size = len(member_records)
     out_size = len(non_member_records)
     if in_size == 0:
-        return []
+        return [], 0
+
+    in_entries_total = len({r.pdb_id for r in member_records})
+    out_entries_total = len({r.pdb_id for r in non_member_records})
 
     in_counts: Counter = Counter()
     out_counts: Counter = Counter()
+    in_entry_sets: dict = {}
+    out_entry_sets: dict = {}
     for r in member_records:
         for c in r.uniprot_pairs:
             in_counts[c] += 1
+            in_entry_sets.setdefault(c, set()).add(r.pdb_id)
     for r in non_member_records:
         for c in r.uniprot_pairs:
             out_counts[c] += 1
+            out_entry_sets.setdefault(c, set()).add(r.pdb_id)
 
-    results = []
+    rows = []
     for contact, in_n in in_counts.items():
-        out_n = int(out_counts.get(contact, 0))
-        in_frac = in_n / in_size
-        out_frac = (out_n / out_size) if out_size > 0 else 0.0
-        exclusive = (out_n == 0)
-        enrichment = float("inf") if exclusive else (in_frac / out_frac if out_frac > 0 else 0.0)
-        keep = (exclusive and in_n >= 1) or (in_n >= min_count and enrichment >= min_enrichment)
-        if not keep:
+        if in_n < min_interfaces:
             continue
-        results.append({
+        out_n = int(out_counts.get(contact, 0))
+        rows.append({
             "contact": contact,
             "in_cluster_interfaces": int(in_n),
+            "in_cluster_size": in_size,
+            "in_cluster_fraction": in_n / in_size,
             "out_cluster_interfaces": out_n,
-            "enrichment": enrichment,
-            "exclusive": exclusive,
+            "out_cluster_size": out_size,
+            "out_cluster_fraction": (out_n / out_size) if out_size else None,
+            "in_cluster_entries": len(in_entry_sets.get(contact, ())),
+            "in_cluster_entry_total": in_entries_total,
+            "out_cluster_entries": len(out_entry_sets.get(contact, ())),
+            "out_cluster_entry_total": out_entries_total,
         })
-    results.sort(key=lambda r: (
-        0 if r["exclusive"] else 1,
-        -r["in_cluster_interfaces"] if r["exclusive"] else 0,
-        -r["enrichment"] if not r["exclusive"] else 0,
-        -r["in_cluster_interfaces"],
+
+    # Most frequent inside the cluster first; among equals, the ones rarest
+    # outside it first, since those are what a reader will look at. This is a
+    # display order, not a ranking by significance.
+    rows.sort(key=lambda r: (
+        -r["in_cluster_fraction"],
+        r["out_cluster_fraction"] if r["out_cluster_fraction"] is not None else 0.0,
+        str(r["contact"]),
     ))
-    return results[:top_n]
+    return rows[:top_n], len(rows)
 
 
 def compare_clusters(
@@ -858,26 +981,39 @@ def _format_contacts(items: list[dict], partner_map: dict, residue_identity: dic
         aa1 = rid.get((acc1, pos1, role1), "")
         aa2 = rid.get((acc2, pos2, role2), "")
         contact_str = f"{l1}:{aa1}{pos1}-{l2}:{aa2}{pos2} {bond}"
-        if it["exclusive"]:
-            parts.append(f"{contact_str} ({it['in_cluster_interfaces']}, exclusive)")
-        else:
-            parts.append(f"{contact_str} ({it['in_cluster_interfaces']}, {it['enrichment']:.1f}x)")
+        suffix = (
+            f"{it['in_cluster_interfaces']}/{it['in_cluster_size']} interfaces "
+            f"= {it['in_cluster_fraction']:.0%}, "
+            f"{it['in_cluster_entries']}/{it['in_cluster_entry_total']} entries"
+        )
+        if it.get("out_cluster_size"):
+            suffix += (
+                f"; rest {it['out_cluster_interfaces']}/{it['out_cluster_size']} "
+                f"= {it['out_cluster_fraction']:.0%}"
+            )
+        parts.append(f"{contact_str} ({suffix})")
     return "; ".join(parts)
 
 
-def _enriched_labels(
+def _label_profile(
     df: pd.DataFrame,
     member_keys: set,
     non_member_keys: set,
     label_col: str,
-    min_count: int,
-    min_enrichment: float,
+    member_entries: set,
+    non_member_entries: set,
 ) -> list[dict]:
-    """Return labels with significant enrichment in cluster vs rest of dataset.
+    """Describe one annotation stream inside a cluster vs the rest. No test.
 
     Counts are by *distinct interface* (de-duplicated on
-    pdb_id/assembly_id/interface_id), not raw rows, so a ligand with multiple
-    contact tuples on one interface counts once.
+    pdb_id/assembly_id/interface_id) and by *distinct PDB entry*, so a ligand
+    with several contact tuples on one interface counts once, and one entry
+    contributing several assemblies counts once at entry level.
+
+    Unlike the contact profile this comparison is not circular, since
+    annotations never enter the clustering, but the structures are still not
+    independent samples (repeated assemblies, laboratory-correlated
+    depositions), so no significance is computed here either.
     """
     if df.empty or label_col not in df.columns:
         return []
@@ -894,37 +1030,33 @@ def _enriched_labels(
 
     in_counts = in_df.drop_duplicates(["_key", label_col])[label_col].value_counts()
     out_counts = out_df.drop_duplicates(["_key", label_col])[label_col].value_counts()
+    # Distinct PDB entries carrying each label, on each side.
+    in_entry_counts = in_df.drop_duplicates(["pdb_id", label_col])[label_col].value_counts()
+    out_entry_counts = out_df.drop_duplicates(["pdb_id", label_col])[label_col].value_counts()
 
-    results = []
+    rows = []
     for label, in_n in in_counts.items():
         in_n = int(in_n)
         out_n = int(out_counts.get(label, 0))
-        in_frac = in_n / in_size
-        out_frac = (out_n / out_size) if out_size > 0 else 0.0
-        exclusive = (out_n == 0)
-        enrichment = float("inf") if exclusive else (in_frac / out_frac if out_frac > 0 else 0.0)
-
-        keep = (exclusive and in_n >= 1) or (in_n >= min_count and enrichment >= min_enrichment)
-        if not keep:
-            continue
-        results.append({
+        rows.append({
             "label": label,
             "in_cluster_interfaces": in_n,
+            "in_cluster_size": in_size,
+            "in_cluster_fraction": in_n / in_size,
             "out_cluster_interfaces": out_n,
-            "in_fraction": float(in_frac),
-            "enrichment": enrichment,
-            "exclusive": exclusive,
+            "out_cluster_size": out_size,
+            "out_cluster_fraction": (out_n / out_size) if out_size else None,
+            "in_cluster_entries": int(in_entry_counts.get(label, 0)),
+            "in_cluster_entry_total": len(member_entries),
+            "out_cluster_entries": int(out_entry_counts.get(label, 0)),
+            "out_cluster_entry_total": len(non_member_entries),
         })
-    # Sort: exclusive first (largest count), then by enrichment desc, then count desc.
-    return sorted(
-        results,
-        key=lambda r: (
-            0 if r["exclusive"] else 1,
-            -r["in_cluster_interfaces"] if r["exclusive"] else 0,
-            -r["enrichment"] if not r["exclusive"] else 0,
-            -r["in_cluster_interfaces"],
-        ),
-    )
+    rows.sort(key=lambda r: (
+        -r["in_cluster_fraction"],
+        r["out_cluster_fraction"] if r["out_cluster_fraction"] is not None else 0.0,
+        str(r["label"]),
+    ))
+    return rows
 
 
 def _member_interfaces_with(df: pd.DataFrame, member_keys: set) -> set:
@@ -935,12 +1067,21 @@ def _member_interfaces_with(df: pd.DataFrame, member_keys: set) -> set:
 
 
 def _format_label(item: dict) -> str:
-    if item["exclusive"]:
-        return f"{item['label']} ({item['in_cluster_interfaces']}, exclusive)"
-    return f"{item['label']} ({item['in_cluster_interfaces']}, {item['enrichment']:.1f}x)"
+    """`ACE2 K353A (12/44 interfaces, 10/38 entries; rest of dataset 3/86)`."""
+    base = (
+        f"{item['label']} ({item['in_cluster_interfaces']}/{item['in_cluster_size']} interfaces "
+        f"= {item['in_cluster_fraction']:.0%}, "
+        f"{item['in_cluster_entries']}/{item['in_cluster_entry_total']} entries"
+    )
+    if item.get("out_cluster_size"):
+        base += (
+            f"; rest {item['out_cluster_interfaces']}/{item['out_cluster_size']} "
+            f"= {item['out_cluster_fraction']:.0%}"
+        )
+    return base + ")"
 
 
-def _format_enriched(items: list[dict]) -> str:
+def _format_profile(items: list[dict]) -> str:
     return "; ".join(_format_label(it) for it in items)
 
 
@@ -957,6 +1098,8 @@ def _build_notes(
     warnings: list[str] | None = None,
     partner_map: dict | None = None,
     residue_identity: dict | None = None,
+    contact_profile: list[dict] | None = None,
+    n_contacts_total: int = 0,
 ) -> str:
     method_suffix = ""
     if methods_str or resolution_str:
@@ -974,7 +1117,7 @@ def _build_notes(
     if n_non_members == 0:
         head = (
             f"{state_label}: single-state dataset; "
-            f"no rest-of-dataset to compare against, so enrichment is not computable."
+            f"no rest of dataset to compare against."
             f"{method_suffix}"
         )
         return _attach_state_diagnostics(
@@ -983,6 +1126,7 @@ def _build_notes(
             area_stats=area_stats, contact_density_median=contact_density_median,
             core_contacts=core_contacts, warnings=warnings,
             partner_map=partner_map, residue_identity=residue_identity,
+            contact_profile=contact_profile, n_contacts_total=n_contacts_total,
         )
     if cluster_size == 1:
         head = (
@@ -995,17 +1139,18 @@ def _build_notes(
             area_stats=area_stats, contact_density_median=contact_density_median,
             core_contacts=core_contacts, warnings=warnings,
             partner_map=partner_map, residue_identity=residue_identity,
+            contact_profile=contact_profile, n_contacts_total=n_contacts_total,
         )
 
     parts = []
     if muts:
-        parts.append("mutations enriched at the interface — " +
+        parts.append("mutations at the interface: " +
                      ", ".join(_format_label(m) for m in muts))
     if mods:
-        parts.append("modifications enriched at the interface — " +
+        parts.append("modifications at the interface: " +
                      ", ".join(_format_label(m) for m in mods))
     if ligs:
-        parts.append("ligands enriched at the interface — " +
+        parts.append("ligands at the interface: " +
                      ", ".join(_format_label(m) for m in ligs))
 
     density = []
@@ -1023,17 +1168,15 @@ def _build_notes(
         head = f"{state_label}: {body}.{method_suffix}"
     elif density:
         head = (
-            f"{state_label}: no annotation "
-            f"sufficiently enriched at the interface vs rest of dataset "
-            f"(thresholds: count>=2, enrichment>=2x, or exclusive). "
-            f"Annotation density: " + ", ".join(density) + "."
+            f"{state_label}: no mutation, modification, or ligand recorded at the "
+            f"interface. Annotation density: " + ", ".join(density) + "."
             f"{method_suffix}"
         )
     else:
         head = (
-            f"{state_label}: no enriched mutation, "
-            "modification, or ligand at the interface, and no member carries any. "
-            "Members may share crystal form, era, or refinement protocol."
+            f"{state_label}: no mutation, modification, or ligand at the interface, "
+            "and no member carries any. Members may share crystal form, era, or "
+            "refinement protocol."
             f"{method_suffix}"
         )
     return _attach_state_diagnostics(
@@ -1042,6 +1185,7 @@ def _build_notes(
         area_stats=area_stats, contact_density_median=contact_density_median,
         core_contacts=core_contacts, warnings=warnings,
         partner_map=partner_map, residue_identity=residue_identity,
+        contact_profile=contact_profile, n_contacts_total=n_contacts_total,
     )
 
 
@@ -1055,18 +1199,27 @@ def _attach_state_diagnostics(
     warnings: list[str] | None,
     partner_map: dict | None,
     residue_identity: dict | None,
+    contact_profile: list[dict] | None = None,
+    n_contacts_total: int = 0,
 ) -> str:
-    """Append residue-pair / interaction / area / density / warnings lines."""
+    """Append residue-pair / interaction / area / contacts / warnings lines."""
     lines = [head]
     stat_lines = _stat_lines(pair_stats, tuple_stats, area_stats, contact_density_median)
     lines.extend(stat_lines)
+    rid = residue_identity or {}
+    pmap = partner_map or {}
     if core_contacts:
-        rid = residue_identity or {}
-        pmap = partner_map or {}
         lines.append(
             f"  Core contacts (>= conservation_threshold of members): "
             + _format_core_contacts(core_contacts, pmap, rid)
         )
+    if contact_profile:
+        shown = len(contact_profile)
+        header = (
+            f"  Contacts in this cluster (counts only, no significance test; "
+            f"showing {shown} of {n_contacts_total})"
+        )
+        lines.append(f"{header}: " + _format_contacts(contact_profile, pmap, rid))
     if warnings:
         lines.append("  QC warnings: " + "; ".join(warnings))
     return "\n".join(lines)
@@ -1129,14 +1282,16 @@ def compare_cluster_contacts(
             bond_type so a residue-pair shared across bond types counts once.
         top_n: rows to keep, sorted by absolute fraction_difference desc.
         a_enriched_threshold: |fraction_diff| above which a contact is
-            tagged A-enriched / B-enriched (default 0.5).
+            tagged "higher in A" / "higher in B" (default 0.5). A descriptive
+            convention, not a test: with unequal cluster sizes a single
+            structure can move the fraction in the smaller state.
         shared_core_threshold: minimum fraction in BOTH clusters for the
             "shared core" label (default 0.8).
 
     Returns DataFrame with columns:
         contact, cluster_A_count, cluster_B_count,
         cluster_A_fraction, cluster_B_fraction,
-        fraction_difference, enrichment_direction.
+        fraction_difference, contact_direction.
     """
     cluster_of = {
         r.key: int(cluster_result.flat_assignment[i])
@@ -1200,9 +1355,9 @@ def compare_cluster_contacts(
         if frac_a >= shared_core_threshold and frac_b >= shared_core_threshold:
             direction = "shared core"
         elif diff >= a_enriched_threshold:
-            direction = "A-enriched"
+            direction = "higher in A"
         elif diff <= -a_enriched_threshold:
-            direction = "B-enriched"
+            direction = "higher in B"
         else:
             direction = "rare"
 
@@ -1213,7 +1368,7 @@ def compare_cluster_contacts(
             "cluster_A_fraction": round(frac_a, 3),
             "cluster_B_fraction": round(frac_b, 3),
             "fraction_difference": round(diff, 3),
-            "enrichment_direction": direction,
+            "contact_direction": direction,
         })
 
     df = pd.DataFrame(rows)
@@ -1472,3 +1627,58 @@ def _build_partner_metadata(
             "label": label,
         }
     return out
+
+
+def export_preview(export_data: dict, top_n: int = 10) -> dict[str, pd.DataFrame]:
+    """Top residues and contacts from an export, sorted by frequency.
+
+    The exported JSON itself uses deterministic role and position ordering;
+    these tables are sorted by frequency for reading.
+    """
+    residues = (
+        pd.DataFrame(export_data["residue_frequencies"])
+        .sort_values("frequency", ascending=False)
+        .head(top_n)
+        .reset_index(drop=True)
+    )
+    contacts = pd.DataFrame([
+        {
+            "partner_1": c["partner_1"]["unp_residue_label"],
+            "partner_2": c["partner_2"]["unp_residue_label"],
+            "bond_type": c.get("bond_type", ""),
+            "n_interfaces": c["n_interfaces"],
+            "frequency": c["frequency"],
+        }
+        for c in export_data["contact_frequencies"]
+    ])
+    contacts = (
+        contacts.sort_values("frequency", ascending=False)
+        .head(top_n)
+        .reset_index(drop=True)
+    )
+    return {"residues": residues, "contacts": contacts}
+
+
+def rewiring_table(
+    records: list[InterfaceRecord],
+    cluster_result: ClusterResult,
+    partner_map: dict[tuple[str, int], str] | None = None,
+    top_n: int = 20,
+) -> tuple[pd.DataFrame, str]:
+    """`compare_cluster_contacts` plus a description of what was compared.
+
+    Returns (table, message). When fewer than two non-singleton states exist
+    the table is empty and the message explains why.
+    """
+    try:
+        table = compare_cluster_contacts(
+            records, cluster_result, partner_map=partner_map, top_n=top_n,
+        )
+    except ValueError as exc:
+        return pd.DataFrame(), f"No comparison available: {exc}"
+    message = (
+        f"State {table.attrs.get('cluster_a')} (n={table.attrs.get('size_a')}) versus "
+        f"state {table.attrs.get('cluster_b')} (n={table.attrs.get('size_b')}), "
+        f"sorted by absolute fraction difference, top {top_n}."
+    )
+    return table, message

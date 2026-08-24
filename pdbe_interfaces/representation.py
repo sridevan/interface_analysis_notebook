@@ -68,42 +68,80 @@ def build_interface_records(interface_response: list[dict]) -> list[InterfaceRec
     return records
 
 
-def valid_assemblies(
+def bond_type_counts(records: list["InterfaceRecord"]) -> dict[str, int]:
+    """Count typed contacts by bond_type across all interfaces.
+
+    The interaction vocabulary is whatever the API returns for a given complex.
+    Comparison covers only these types, so a difference in any interaction type
+    absent from the response is invisible to the similarity measure.
+    """
+    counts: Counter = Counter(bond for r in records for _, _, bond in r.uniprot_pairs)
+    return dict(counts.most_common())
+
+
+def assembly_exclusions(
     complex_details: dict,
     max_resolution: float | None = None,
-) -> set[tuple[str, str]]:
-    """Return (pdb_id, assembly_id) tuples for valid assemblies.
+) -> dict[tuple[str, str], str]:
+    """Map (pdb_id, assembly_id) -> reason, for every assembly to be excluded.
 
-    Excludes:
-    - assemblies with bound macromolecules (a third macromolecule beyond
-      the canonical dimer — co-chaperone, antibody Fab, accessory subunit
-      — which can perturb the interface).
-    - if `max_resolution` is set: assemblies whose resolution exceeds the
-      threshold, OR whose resolution is None (NMR, unreported, etc.). The
-      strict interpretation matches the typical user intent when filtering
-      by resolution: keep only structures with explicit, sufficient
-      resolution data.
+    Two reasons, checked in this order:
 
-    Default `max_resolution=None` disables the resolution filter (all
-    resolutions, including None, are kept).
+    - `bound_macromolecules`: the assembly instance carries a macromolecule
+      beyond the two UniProt-mapped components (antibody Fab, peptide, short
+      nucleic acid, co-chaperone, accessory subunit). Excluded unconditionally:
+      with more than two components the correspondence between chains cannot be
+      determined, so the interfaces are not comparable across structures. The
+      reported reason names the bound macromolecule types as the API lists them.
+    - `resolution`: only when `max_resolution` is set, the assembly's
+      resolution exceeds the threshold, or is None (NMR, unreported). The
+      strict interpretation matches the typical intent of a resolution filter:
+      keep only structures with explicit, sufficient resolution data.
     """
-    valid: set[tuple[str, str]] = set()
+    excluded: dict[tuple[str, str], str] = {}
     for a in (complex_details.get("assemblies") or []):
-        if a.get("bound_macromolecules"):
+        pdb_id = a.get("pdb_id")
+        assembly_id = a.get("assembly_id")
+        if not pdb_id or assembly_id is None:
+            continue
+        key = (str(pdb_id), str(assembly_id))
+        bound = a.get("bound_macromolecules") or []
+        if bound:
+            excluded[key] = f"bound_macromolecules: {', '.join(str(b) for b in bound)}"
             continue
         if max_resolution is not None:
             res = a.get("resolution")
             if res is None:
+                excluded[key] = "resolution unreported"
                 continue
             try:
-                if float(res) > max_resolution:
-                    continue
+                res_f = float(res)
             except (TypeError, ValueError):
+                excluded[key] = f"resolution unparseable ({res!r})"
                 continue
+            if res_f > max_resolution:
+                excluded[key] = f"resolution {res_f} > {max_resolution}"
+    return excluded
+
+
+def valid_assemblies(
+    complex_details: dict,
+    max_resolution: float | None = None,
+) -> set[tuple[str, str]]:
+    """Return (pdb_id, assembly_id) tuples for assemblies that pass the filters.
+
+    See `assembly_exclusions` for what gets dropped and why.
+    """
+    excluded = assembly_exclusions(complex_details, max_resolution=max_resolution)
+    valid: set[tuple[str, str]] = set()
+    for a in (complex_details.get("assemblies") or []):
         pdb_id = a.get("pdb_id")
         assembly_id = a.get("assembly_id")
-        if pdb_id and assembly_id is not None:
-            valid.add((str(pdb_id), str(assembly_id)))
+        if not pdb_id or assembly_id is None:
+            continue
+        key = (str(pdb_id), str(assembly_id))
+        if key not in excluded:
+            valid.add(key)
     return valid
 
 
@@ -125,10 +163,97 @@ def filter_interfaces_by_assembly(
             dropped.append(key)
     if dropped:
         log.warning(
-            "Dropped %d interfaces from assemblies with bound macromolecules: %s",
-            len(dropped), sorted(set(dropped)),
+            "Dropped %d interfaces from %d filtered assemblies: %s",
+            len(dropped), len(set(dropped)), sorted(set(dropped)),
         )
     return filtered, dropped
+
+
+@dataclass
+class InterfaceSelection:
+    """Interfaces retained for analysis, with a record of what was excluded."""
+
+    interfaces: list[dict]
+    pdb_ids: list[str]
+    n_interfaces_before: int
+    n_entries_before: int
+    dropped_by_reason: Counter
+    max_entries: int | None = None
+
+    def summary(self) -> str:
+        lines = [
+            f"Assembly filters excluded {sum(self.dropped_by_reason.values())} of "
+            f"{self.n_interfaces_before} interfaces:"
+        ]
+        for reason, n in self.dropped_by_reason.most_common():
+            lines.append(f"  {n:4d}  {reason}")
+        if not self.dropped_by_reason:
+            lines.append("  none")
+        if self.max_entries is not None and len(self.pdb_ids) < self.n_entries_before:
+            lines.append(
+                f"Subset active (max_entries={self.max_entries}): {len(self.pdb_ids)} of "
+                f"{self.n_entries_before} PDB entries. A subset biases the clustering "
+                f"and every conservation fraction; set max_entries=None for the full "
+                f"dataset."
+            )
+        lines.append(
+            f"Retained {len(self.interfaces)} interfaces across {len(self.pdb_ids)} "
+            f"PDB entries: {', '.join(self.pdb_ids)}"
+        )
+        return "\n".join(lines)
+
+
+def select_interfaces(
+    interface_response: list[dict],
+    complex_details: dict,
+    max_resolution: float | None = None,
+    max_entries: int | None = None,
+) -> InterfaceSelection:
+    """Apply the assembly filters and the optional entry subset.
+
+    Excludes assembly instances carrying bound macromolecules, and when
+    `max_resolution` is set those above the threshold (see
+    `assembly_exclusions`). Interfaces whose assembly is absent from
+    `complex/details` are also excluded, since no metadata is available for
+    them. Raises ValueError if nothing survives.
+    """
+    n_before = len(interface_response)
+    n_entries_before = len({it.get("entry_id") for it in interface_response})
+
+    excluded = assembly_exclusions(complex_details, max_resolution=max_resolution)
+    valid = valid_assemblies(complex_details, max_resolution=max_resolution)
+    retained, dropped = filter_interfaces_by_assembly(interface_response, valid)
+    if not retained:
+        raise ValueError(
+            "No interfaces remain after the assembly filters. Every assembly "
+            "either carries a bound macromolecule beyond the two UniProt-mapped "
+            f"components or fails max_resolution={max_resolution}."
+        )
+
+    reasons: Counter = Counter()
+    for key in dropped:
+        reason = excluded.get(key)
+        if reason is None:
+            reasons["not listed in complex/details assemblies"] += 1
+        elif reason.startswith("bound_macromolecules"):
+            reasons[reason] += 1
+        else:
+            reasons["resolution filter"] += 1
+
+    pdb_ids = sorted({it["entry_id"] for it in retained})
+    if max_entries is not None and len(pdb_ids) > max_entries:
+        keep = set(pdb_ids[:max_entries])
+        retained = [it for it in retained if it["entry_id"] in keep]
+        pdb_ids = sorted(keep)
+
+    return InterfaceSelection(
+        interfaces=retained,
+        pdb_ids=pdb_ids,
+        n_interfaces_before=n_before,
+        n_entries_before=n_entries_before,
+        dropped_by_reason=reasons,
+        max_entries=max_entries,
+    )
 
 
 def _build_one(item: dict) -> InterfaceRecord:

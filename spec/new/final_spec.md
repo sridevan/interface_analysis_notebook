@@ -1,4 +1,19 @@
-# Aggregated Interface Interaction Analysis Notebook — Specification
+# Aggregated Interface Interaction Analysis in Dimers: Specification
+
+## Revision note
+
+This specification has been updated to match the implemented notebook. Changes from the original design:
+
+- **Input** accepts a PDB entry id as well as a PDB complex id (*Input Specification*).
+- **The bound-macromolecule exclusion is no longer configurable.** `Config.exclude_assemblies_with_bound_macromolecules` has been removed: chain correspondence cannot be determined for instances with more than two components, so their interfaces cannot be compared on any setting (*Assembly filtering*).
+- **Retrieval** of per-entry and per-ligand data is concurrent (*Performance expectations*).
+- **The enrichment heuristic has been removed.** Contacts and annotations are reported as counts inside and outside each cluster, with no fold-enrichment, p-value or significance threshold. The rationale, and the evidence that led to it, is in *Cluster contact and annotation profiles*.
+- **Report columns renamed** accordingly: `enriched_*` became `cluster_*`, and `annotation_correlate_present` became `has_annotations`.
+- **A resolution-gap QC warning** was added (*Cluster QC warnings*).
+- **New modules** `config.py`, `plots.py` and `explorer.py` hold the settings, figures and interactive widget, so the notebook carries narrative and configuration rather than implementation (*Component / Module Breakdown*).
+- **Scope and limitations are stated in the notebook itself**, at the phase where each applies.
+
+---
 
 ## Overview
 
@@ -8,13 +23,13 @@ The Aggregated Interface Interaction Analysis Notebook is a Jupyter notebook tha
 
 **Intended users.** Structural biologists analysing a known complex; medicinal chemists comparing apo and ligand-bound states; bioinformaticians curating reference datasets of interface variability for downstream pipelines.
 
-**What the notebook does.** Fetches all interfaces for one complex from PDBe, builds a UniProt-keyed interaction-pair representation that is comparable across structures, computes a Jaccard similarity matrix and hierarchical clustering, and joins per-residue annotations onto the interface so each cluster can be inspected for an annotation correlate (e.g. "all G12C structures cluster here", "this cluster has sotorasib bound"). Each cluster is treated as a candidate **interface interaction state** — a recurring pattern of residue–residue contacts that distinguishes a subset of structures from the rest.
+**What the notebook does.** Fetches all interfaces for one complex from PDBe, builds a UniProt-keyed interaction-pair representation that is comparable across structures, computes a Jaccard similarity matrix and hierarchical clustering, and joins per-residue annotations onto the interface so each cluster can be inspected for an annotation correlate (e.g. "all G12C structures cluster here", "this cluster has sotorasib bound"). Each cluster is treated as a candidate **interface interaction state**, a recurring pattern of residue–residue contacts that distinguishes a subset of structures from the rest.
 
-**Primary outcome.** A structure table, a similarity heatmap, a dendrogram, conserved-residue and conserved-interaction-pair sets, annotation overlap views, a cluster interpretation report (with per-state statistics, core contacts, enriched contacts and annotations, and QC warnings), a head-to-head **interface rewiring** comparison between any two interaction states, and a lightweight **interface frequency JSON export** (per-residue conservation and per-contact frequencies for downstream visualisation) — each surfaced as an inspectable artefact in the notebook.
+**Primary outcome.** A structure table, a similarity heatmap, a dendrogram, conserved-residue and conserved-interaction-pair sets, annotation overlap views, a cluster interpretation report (with per-state statistics, core contacts, per-cluster contact and annotation counts, and QC warnings), a head-to-head **interface rewiring** comparison between any two interaction states, and a lightweight **interface frequency JSON export** (per-residue conservation and per-contact frequencies for downstream visualisation), each surfaced as an inspectable artefact in the notebook.
 
-**Broader context.** The interaction-pair representation is structure-source agnostic. Although v1 is restricted to PDBe-derived dimer interfaces, the same downstream machinery is intended to extend to non-dimer interfaces (when upstream APIs support them) and to predicted complexes (AlphaFold-Multimer, Boltz, Chai) by replacing only the data-retrieval layer. The notebook is an analysis tool — not a docking, prediction, or sequence-conservation tool.
+**Broader context.** The interaction-pair representation is structure-source agnostic, so the downstream machinery could be applied to predicted complexes (AlphaFold-Multimer, Boltz, Chai) by replacing only the data-retrieval layer. Extending it beyond dimers is a different matter: it is blocked not only by the `interface_interactions` endpoint but by chain correspondence, since with more than two components there is no way to determine which chain in one structure corresponds to which in another, and therefore no basis for comparing their interfaces. Any higher-order extension would have to solve that first. The notebook is an analysis tool, not a docking, prediction, or sequence-conservation tool.
 
-The working example throughout development is **PDB-CPX-130306 (KRAS–RAF1 heterodimer)**: a clean heterodimer with multiple PDB structures, mutations, and ligands.
+The default working example is **11gl / PDB-CPX-172174 (STING, Complex Portal CPX-2128)**, a homodimer of 14 interfaces from 12 entries that separates into four states of 9, 3, 1 and 1, small enough to read end to end while still exercising clustering, rewiring and the QC warnings. **1spq / PDB-CPX-130029 (triosephosphate isomerase)** is a homodimer whose interface is invariant across every cut, useful for checking role symmetry. **6m0j / PDB-CPX-140195 (SARS-CoV-2 Spike RBD with ACE2)** is the large case used for the measurements quoted in this document, 130 interfaces across 114 entries separating into 13 states.
 
 ---
 
@@ -22,14 +37,16 @@ The working example throughout development is **PDB-CPX-130306 (KRAS–RAF1 hete
 
 Implementing this notebook correctly requires understanding several domain concepts that govern how PDBe data is shaped and what interface comparisons mean.
 
-**Protein complexes and interfaces.** A protein complex is an assembly of two or more chains that contact each other in a defined geometry. The "interface" between two chains is the set of residues in physical contact, where contact is operationalised by an upstream pipeline (PISA in this workflow) as atoms within a specified distance, with a contact type (hydrogen bond, salt bridge, covalent bond, etc.). PISA reports contacts at atom level; this workflow aggregates atom-level contacts to residue-pair-and-bond-type elements (see §6 of the source spec; reproduced in Output Parsing).
+**Protein complexes and interfaces.** A protein complex is an assembly of two or more chains that contact each other in a defined geometry. The "interface" between two chains is the set of residues in physical contact, where contact is operationalised by an upstream pipeline (PISA in this workflow) as atoms within a specified distance, with a contact type (hydrogen bond, salt bridge, disulfide bond, other covalent bond). PISA reports contacts at atom level; this workflow aggregates atom-level contacts to residue-pair-and-bond-type elements (see §6 of the source spec; reproduced in Output Parsing).
 
-**Why a single complex has many structures.** PDBe-KB groups PDB entries by complex composition. The same heterodimer can be deposited tens of times — different mutants, different bound ligands, different crystal forms, different resolutions, different research groups. Each deposition contributes one or more *assemblies*, and each assembly can contain one or more *interfaces*. The unit of analysis here is the interface, keyed by `(pdb_id, assembly_id, interface_id)`.
+**Observed contact vocabulary.** Across the complexes examined during development (17 dimeric complexes, 490 interfaces, 5,761 interaction records), every record returned by `interface_interactions` carried a `bond_type` of `hydrogen_bond` or `salt_bridge`, and the `number_disulfide_bonds` and `number_covalent_bonds` fields of `interface_info` were zero throughout, including for all 163 interfaces of the insulin complex, whose A and B chains are joined by interchain disulfides. That sample is small and was not selected systematically, so it does not establish whether other interaction types are absent from those interfaces, not annotated by PISA for them, or not exposed by this endpoint. Two observations follow that are worth confirming with the API team: whether the covalent and disulfide summary fields are populated, and why `interface_info` reports slightly more hydrogen bonds and salt bridges than the residue-pair records enumerate (792 versus 779, and 179 versus 167, for the insulin complex). Implementations should not assume the vocabulary; read `bond_type` from the response.
+
+**Why a single complex has many structures.** PDBe-KB groups PDB entries by complex composition. The same heterodimer can be deposited tens of times, different mutants, different bound ligands, different crystal forms, different resolutions, different research groups. Each deposition contributes one or more *assemblies*, and each assembly can contain one or more *interfaces*. The unit of analysis here is the interface, keyed by `(pdb_id, assembly_id, interface_id)`.
 
 **Three coexisting numbering systems.**
-- **Author numbering** — chain and residue labels chosen by the depositor, including an optional one-character insertion code. Used by both the interface API and all annotation APIs.
-- **UniProt numbering** — canonical sequence position. Provided inline by the interface API for interface residues. *Not* provided by any annotation API.
-- **Label numbering (SEQRES position)** — provided by some endpoints but not used in this workflow.
+- **Author numbering**: chain and residue labels chosen by the depositor, including an optional one-character insertion code. Used by both the interface API and all annotation APIs.
+- **UniProt numbering**: canonical sequence position. Provided inline by the interface API for interface residues. *Not* provided by any annotation API.
+- **Label numbering (SEQRES position)**: provided by some endpoints but not used in this workflow.
 
 The notebook joins annotations to interfaces in author space (because annotation endpoints do not return UniProt mappings), then reads the UniProt key off the interface side for cross-structure analysis. This two-step join is the load-bearing mechanic of the workflow.
 
@@ -40,9 +57,9 @@ The notebook joins annotations to interfaces in author space (because annotation
 **Why Jaccard + hierarchical clustering and not ML.** Sample sizes are small. Jaccard on set membership is interpretable, parameter-free at this scale, and tolerates the heterogeneous interface sizes that arise across crystal forms. Hierarchical clustering with average linkage on `1 − Jaccard` distance produces a dendrogram the user can inspect directly rather than a black-box assignment.
 
 **Annotations and what they mean.**
-- *Engineered mutations* are deliberate substitutions introduced by the depositors relative to the canonical UniProt sequence — disease-associated (e.g. KRAS G12C), stability/solubility, catalytic knockouts, phosphomimics, crystallisation aids. The mutation API also returns categories that are *not* deliberate experimental choices (sequence conflicts, cloning artefacts, expression tags). The default filter retains only `"Engineered mutation"`; the filter is exposed as a parameter.
+- *Engineered mutations* are deliberate substitutions introduced by the depositors relative to the canonical UniProt sequence: disease-associated substitutions (e.g. KRAS G12C), stability or solubility changes, catalytic knockouts, phosphomimics, and crystallisation aids. The mutation API also returns categories that are *not* deliberate experimental choices (sequence conflicts, cloning artefacts, expression tags). The default filter retains only `"Engineered mutation"`; the filter is exposed as a parameter.
 - *Modifications* are PTMs and chemical modifications encoded as alternative chem_comp_ids (e.g. `SEP` = phospho-serine). For protein-only complexes the data is generally clean.
-- *Ligands* are bound molecules — drug-like inhibitors, cofactors, substrates — and also a long tail of buffer components, cryoprotectants, counter-ions. The default ligand blocklist removes the obvious noise (`SO4`, `GOL`, `HOH`, `EDO`, `PEG`, `MPD`, `CL`, `NA`, `MG`, `ZN`, `CA`, `K`, `ACT`); carbohydrate polymers are also dropped by default. Both are exposed as parameters because some users want catalytic metals or glycosylation retained.
+- *Ligands* are bound molecules such as drug-like inhibitors, cofactors and substrates, and also a long tail of buffer components, cryoprotectants, counter-ions. The default ligand blocklist removes the obvious noise (`SO4`, `GOL`, `HOH`, `EDO`, `PEG`, `MPD`, `CL`, `NA`, `MG`, `ZN`, `CA`, `K`, `ACT`); carbohydrate polymers are also dropped by default. Both are exposed as parameters because some users want catalytic metals or glycosylation retained.
 
 **Caveats the notebook must surface, not hide.**
 - Annotations that fall *outside* the interface are dropped. This is correct for an interface-comparison workflow but means a structure carrying a peripheral mutation will not show that mutation in its overlap row. The structure table records counts only for interface-resident annotations.
@@ -57,14 +74,22 @@ The notebook joins annotations to interfaces in author space (because annotation
 
 ### Primary input
 
-A single PDBe-KB complex identifier, e.g. `PDB-CPX-130306`, supplied as a string in the notebook's `Config` dataclass.
+A single identifier supplied as `Config.identifier`, accepting either form:
+
+- a **PDB entry id**, e.g. `"6m0j"`, resolved to the complex that entry belongs to via `complex/details/{pdb_id}?id_type=pdb_id`;
+- a **PDB complex id**, e.g. `"PDB-CPX-140195"`, used directly.
+
+Most users know an entry id rather than a complex id, which is why the entry form is accepted. In both cases the analysis covers every deposited structure of the resolved complex, not only the entry supplied.
+
+The entry-keyed response is a thin record carrying neither `total_chains` nor per-assembly `bound_macromolecules`, so it is used only to obtain the `pdb_complex_id`; full details are then fetched by complex id. An entry usually maps to exactly one complex. Where it maps to several and exactly one of them is a dimer, that one is selected and the others are logged; otherwise a `ValueError` lists the candidates with their chain counts so the caller can name a complex id explicitly.
 
 ### v1 scope restriction
 
-v1 supports **dimer complexes only**. This is an upstream constraint: the `interface_interactions` endpoint currently returns data for dimers only. The notebook validates the input by calling `complex/details` first and aborts with a `ValueError` and a one-line explanation if:
+v1 supports **dimer complexes only, with both components mapped to UniProt**. Two constraints coincide here: the `interface_interactions` endpoint returns data for dimers only, and, more fundamentally, the correspondence between chains cannot be determined where an instance has more than two components, so its interfaces cannot be compared across structures. `api.resolve_complex_id(identifier, require_dimer=True)` validates the input by calling `complex/details` and aborts with a `ValueError` and a one-line explanation if:
 
-- the complex ID does not resolve, or
-- the complex is not a dimer.
+- the identifier does not resolve, or
+- the resolved complex is not a dimer (the message names both the identifier supplied and the complex it resolved to, with its chain count and oligomeric state), or
+- a PDB entry maps to several complexes and the dimer among them is ambiguous.
 
 ### External APIs
 
@@ -92,7 +117,7 @@ All APIs are PDBe v2 endpoints over HTTPS. No authentication is required.
 - their `resolution` value (from `complex/details`) exceeds the threshold, OR
 - their `resolution` value is `None` (NMR, unreported, structures without a crystallographic resolution).
 
-The strict interpretation of "resolution N or better" is intentional — when the user filters by resolution they typically want only structures with explicit, sufficient resolution data. Default `None` disables the filter (all resolutions kept, including None).
+The strict interpretation of "resolution N or better" is intentional: when the user filters by resolution they typically want only structures with explicit, sufficient resolution data. Default `None` disables the filter (all resolutions kept, including None).
 
 Useful for: trimming low-resolution cryo-EM entries from datasets like Spike–ACE2 (which contains entries at 4.30 Å), or restricting analysis to high-resolution X-ray data when fine contact geometry matters.
 
@@ -106,7 +131,9 @@ Bound *small-molecule* ligands are handled separately by the ligand workflow (§
 
 Implementation: a set of valid `(pdb_id, assembly_id)` tuples is built from `complex/details` in Phase 1. Interfaces from `interface_interactions` are filtered against this set before any downstream processing. Dropped interfaces are logged at WARNING with their `(pdb_id, assembly_id)` and the count.
 
-The filter is exposed as a configuration parameter (`Config.exclude_assemblies_with_bound_macromolecules: bool = True`) so users who want to retain such assemblies can override it.
+**This exclusion is unconditional and is not exposed as a parameter.** The workflow analyses dimers in which both components map to UniProt. Where an instance carries a third component, the correspondence between its chains cannot be determined, so its interfaces are not comparable with the two-component instances and cannot be included on any setting. An earlier version exposed `Config.exclude_assemblies_with_bound_macromolecules`; the field has been removed.
+
+`representation.select_interfaces` applies the assembly filters and the optional `max_entries` subset in one call and returns an `InterfaceSelection`, which records the reason for every exclusion. Phase 1 prints the breakdown, for example `21  bound_macromolecules: antibody`, so what was removed and why is visible rather than implicit in a total.
 
 ### Warning conditions (logged at WARNING, do not halt)
 
@@ -125,11 +152,11 @@ The filter is exposed as a configuration parameter (`Config.exclude_assemblies_w
 
 The API layer distinguishes **transient** errors (where retrying is appropriate) from **persistent** errors (where bailing is appropriate):
 
-- **Transient errors** — `ConnectionError`, request `Timeout`, and HTTP statuses **429 / 500 / 502 / 503 / 504** — trigger up to 5 total attempts (1 initial + 4 retries) with exponential backoff (1 s, 2 s, 4 s, 8 s, 16 s — total ~31 s wait). Each retry is logged at WARNING with the endpoint and attempt count. PDBe under load occasionally has 10–30 s hiccups; this policy makes most such cases recoverable.
-- **Best-effort calls** — `bound_molecules` and `bound_ligand_interactions` are per-PDB-entry / per-ligand-instance calls (often 200+ in a single Phase 1). They use `tolerate_failure=True`: when retries exhaust on a transient error, the call returns an empty result with a logged WARNING rather than raising. Losing one ligand-instance fetch loses information about that specific ligand only; failing the whole analysis would be disproportionate. Critical calls (`complex/details`, `interface_interactions`, batch mutations / modifications) remain bail-fast.
-- **Persistent errors** — 4xx other than 404, JSON decode failures, exhaustion of retries — raise the underlying `requests` exception with a message naming the failed endpoint and inputs.
+- **Transient errors**: `ConnectionError`, request `Timeout`, and HTTP statuses **429 / 500 / 502 / 503 / 504**, trigger up to 5 total attempts (1 initial + 4 retries) with exponential backoff (1 s, 2 s, 4 s, 8 s, 16 s, total ~31 s wait). Each retry is logged at WARNING with the endpoint and attempt count. PDBe under load occasionally has 10–30 s hiccups; this policy makes most such cases recoverable.
+- **Best-effort calls**: `bound_molecules` and `bound_ligand_interactions` are per-PDB-entry / per-ligand-instance calls (often 200+ in a single Phase 1). They use `tolerate_failure=True`: when retries exhaust on a transient error, the call returns an empty result with a logged WARNING rather than raising. Losing one ligand-instance fetch loses information about that specific ligand only; failing the whole analysis would be disproportionate. Critical calls (`complex/details`, `interface_interactions`, batch mutations / modifications) remain bail-fast.
+- **Persistent errors**: 4xx other than 404, JSON decode failures, exhaustion of retries, raise the underlying `requests` exception with a message naming the failed endpoint and inputs.
 - **404 as "no data"** is the documented behaviour for `bound_molecules`, `bound_ligand_interactions`, `mutated_AA_or_NA`, and `modified_AA_or_NA`. PDBe returns 404 (not an empty 200) when no entries have data of that type. These endpoints are called with `allow_404=True`, which converts 404 into an empty result and logs a WARNING; no retry is attempted.
-- **404 on `complex/details` or `interface_interactions`** is fatal — these are required inputs.
+- **404 on `complex/details` or `interface_interactions`** is fatal, these are required inputs.
 
 ### Batched POST endpoints
 
@@ -142,7 +169,7 @@ This change makes the workflow safe at scale (large multimer complexes, when v2 
 - **PDB entries with multiple assemblies, or multiple interfaces per assembly,** contribute multiple rows to the structure table. This is correct behaviour, not deduplication.
 - **Homodimers.** Both partners share a UniProt accession; role distinguishes them. Symmetric contacts (e.g. `(chain1:25, chain2:87)` and `(chain1:87, chain2:25)`) are preserved as distinct ordered tuples in the interaction set, which is the correct physical behaviour.
 - **No mutations or no ligands returned.** Not an error. Annotation lists are empty; structure table columns are zero.
-- **Two distinct author residues mapping to the same UniProt position** (microheterogeneity, alternate residue identities). The workflow does not detect this — it is documented in §11 of the source spec as a load-bearing assumption that SIFTS provides a one-to-one mapping per `(pdb_id, auth_asym_id, auth_seq_id, ins_code)`.
+- **Two distinct author residues mapping to the same UniProt position** (microheterogeneity, alternate residue identities). The workflow does not detect this, it is documented in §11 of the source spec as a load-bearing assumption that SIFTS provides a one-to-one mapping per `(pdb_id, auth_asym_id, auth_seq_id, ins_code)`.
 
 ---
 
@@ -172,65 +199,67 @@ The notebook expects the `pdbe_interfaces/` package (see Component Breakdown) to
 
 ### Configuration
 
-A single `Config` dataclass is defined at the top of the notebook. Users edit the dataclass instance, not function arguments. All defaults match the spec:
+`Config` is defined in `pdbe_interfaces/config.py`, with each field documented in its docstring. The notebook instantiates it with every parameter written out explicitly, so users see and edit the values in the notebook rather than having to know the field names:
 
 ```python
-@dataclass
-class Config:
-    complex_id: str = "PDB-CPX-130306"
-    mutation_type_filter: tuple[str, ...] = ("Engineered mutation",)
-    ligand_blocklist: frozenset[str] = frozenset({
-        "CL", "NA", "MG", "ZN", "CA", "K",
-        "SO4", "GOL", "HOH", "EDO", "PEG", "MPD", "ACT",
-        "SGM", "DTT", "BME", "TRS",
-    })
-    drop_carbohydrate_polymers: bool = False
-    exclude_assemblies_with_bound_macromolecules: bool = True
-    max_resolution: float | None = None  # e.g. 2.0 to keep only ≤ 2 Å
-    conservation_threshold: float = 0.8     # fraction of interfaces; 1.0 is strict
-    cluster_distance_cut: float = 0.5       # 1 - Jaccard
-    log_level: str = "INFO"
-    output_dir: str | None = None           # JSON export destination; None = current dir
+cfg = Config(
+    identifier="11gl",                    # PDB entry id or PDB complex id; dimers only
+    mutation_type_filter=("Engineered mutation",),
+    ligand_blocklist=frozenset({...}),    # counter-ions, buffers, cryoprotectants
+    drop_carbohydrate_polymers=False,
+    max_resolution=None,                  # Angstrom ceiling; None disables
+    max_entries=None,                     # first N entries alphabetically, for quick checks
+    max_workers=8,                        # threads for per-entry and per-ligand retrieval
+    conservation_threshold=0.8,           # fraction of interfaces
+    cluster_distance_cut=0.6,             # 1 - Jaccard
+    log_level="INFO",
+    output_dir="interface_frequencies",
+)
 ```
 
+`Config.describe()` renders the settings as a table for display, and the JSON export records them so an export remains interpretable.
+
 **Parameter rationale.**
-- `mutation_type_filter`: deliberate experimental choices only; cloning artefacts and expression tags are noise for interface comparison.
+- `identifier`: see *Primary input*.
+- `mutation_type_filter`: deliberate experimental choices only; cloning artefacts and expression tags are noise for interface comparison. Natural sequence variants require adding `"Conflict"`.
 - `ligand_blocklist`: removes buffers, cryoprotectants, common counter-ions. Users retaining catalytic metals (e.g. Mg²⁺ in kinases) override.
 - `drop_carbohydrate_polymers`: glycosylation is biologically meaningful for some complexes but out of scope by default.
+- `max_entries`: restricts the analysis to the first N PDB entries alphabetically, for quick checks. A subset biases the clustering and every conservation fraction, so Phase 1 prints a notice whenever it is active.
+- `max_workers`: the ligand endpoint is called once per ligand instance, so this parameter, rather than any computation, determines retrieval time.
 - `conservation_threshold = 0.8`: tolerates 1–2 drop-outs at N≈10–15. Set to 1.0 for strict conservation; 0.5 shifts the question from "conserved" to "majority-present."
-- `cluster_distance_cut = 0.5`: a midpoint on `1 − Jaccard` that separates clearly different interfaces from clearly similar ones at the working-example sample size. Users override directly or read clusters off the dendrogram.
+- `cluster_distance_cut = 0.6`: a value on `1 − Jaccard` that separates clearly different interfaces from clearly similar ones at the working-example sample size. It determines how many interface interaction states are reported, so the dendrogram and the cut sweep should be inspected before it is accepted.
 - `output_dir`: where the lightweight JSON export (Phase 7) is written. `None` falls back to the current working directory; missing directories are created with `pathlib.Path.mkdir(parents=True, exist_ok=True)`.
 
-### Execution flow — phases
+### Execution flow: phases
 
 The notebook is organised as a sequence of phases, each mapping to one or two cells. Every cell ends with an inspectable artefact (a dataframe, a plot, a printed summary). Phases 1–5 form the analysis core; Phase 7 is a self-contained export with no effect on prior outputs.
 
-**Phase 1 — Data retrieval.**
-1. Validate the input by calling `complex/details`. Abort if invalid. Build the `partner_map` from the response. Build the set of valid `(pdb_id, assembly_id)` tuples — those whose `bound_macromolecules` is empty (see Assembly filtering above).
+**Phase 1; Data retrieval.**
+1. Validate the input by calling `complex/details`. Abort if invalid. Build the `partner_map` from the response. Build the set of valid `(pdb_id, assembly_id)` tuples, those whose `bound_macromolecules` is empty (see Assembly filtering above).
 2. Call `interface_interactions` for the complex. Apply the assembly filter; drop interfaces from assemblies with bound macromolecules and log the count.
-3. Call annotation endpoints in parallel (logical parallelism — the notebook executes sequentially in v1, but the four classes of fetch are independent and could be reordered): batched POSTs for mutations and modifications covering the PDB IDs from the surviving interfaces; per-entry GETs for `bound_molecules`; per-surviving-ligand GETs for `bound_ligand_interactions` after filtering.
+3. Call annotation endpoints (the per-entry and per-ligand GETs are issued concurrently on a thread pool; the batched POSTs are sequential): batched POSTs for mutations and modifications covering the PDB IDs from the surviving interfaces; per-entry GETs for `bound_molecules`; per-surviving-ligand GETs for `bound_ligand_interactions` after filtering.
 
-**Phase 2 — Build representations.**
+**Phase 2; Build representations.**
 4. For each interface in the response, build the author-keyed and UniProt-keyed interaction-pair sets, including the atom-level → residue-pair-and-bond-type aggregation.
 5. Drop interface residues lacking a UniProt mapping, log a warning, record the count per interface.
 6. Run the cross-structure consistency check on `(unp_accession_1, unp_accession_2)`. Reverse role assignment for inconsistent interfaces.
 
-**Phase 3 — Similarity and clustering.**
+**Phase 3; Similarity and clustering.**
 7. Compute pairwise Jaccard similarity between all interfaces using the UniProt-keyed, typed interaction-pair sets. Compute an untyped variant (collapsing across `bond_type`) as a robustness check.
 8. Cluster by hierarchical clustering with average linkage on `1 − Jaccard` distance. Render the dendrogram. Default cut from `Config.cluster_distance_cut`.
 
-**Phase 4 — Annotation overlap.**
+**Phase 4; Annotation overlap.**
 9. For each interface, join annotations (mutations, modifications, ligand-contact residues) to interface residues using the author key. Drop annotations that fall outside the interface.
 10. After the join, attach the UniProt key from the interface side for cross-structure comparison.
 
-**Phase 5 — Summarisation and interpretation.**
+**Phase 5; Summarisation and interpretation.**
 11. Build the structure table.
 12. Identify conserved residues and conserved interaction pairs at the configured threshold.
-13. Build the cluster interpretation report — one row per interface interaction state, including per-interface distributions of residue-pair count, typed-tuple interaction count, and PISA interface area; median contact density; **core contacts** present in ≥ `conservation_threshold` of cluster members; enriched contacts and annotations; and QC warnings (singleton, sparse, tiny interface, mixed UniProt residue range vs the dominant cluster).
-14. Build the **interface rewiring** table — a head-to-head comparison between two interaction states, labelling each contact as `shared core`, `A-enriched`, `B-enriched`, or `rare`. Defaults to the two largest non-singleton states; users can pass arbitrary cluster ids.
+13. Build the cluster interpretation report, one row per interface interaction state, including per-interface distributions of residue-pair count, typed-tuple interaction count, and PISA interface area; median contact density; **core contacts** present in ≥ `conservation_threshold` of cluster members; enriched contacts and annotations; and QC warnings (singleton, sparse, tiny interface, mixed UniProt residue range vs the dominant cluster).
+14. Build the **interface rewiring** table, a head-to-head comparison between two interaction states, labelling each contact as `shared core`, `higher in A`, `higher in B`, or `rare`. Defaults to the two largest non-singleton states; users can pass arbitrary cluster ids.
 
-**Phase 7 — Export interface conservation JSON.**
-15. Call `export_interface_frequency_json` to write a lightweight JSON containing UniProt residue-level interface conservation and residue–residue contact frequencies for downstream visualisation (Mol* colouring, frontend contact matrices/heatmaps, AFDB-style overlays). This step is export-only — it does not modify clustering, the heatmap, or the interpretation report. Output is written to `Config.output_dir` (created if missing) or the current directory if `output_dir` is `None`. See **Output schema — Interface frequency JSON export** below for the file structure.
+**Phase 7; Export interface conservation JSON.**
+15. Call `export_interface_frequency_json` to write a lightweight JSON containing UniProt residue-level interface conservation and residue–residue contact frequencies for downstream visualisation (Mol* colouring, frontend contact matrices/heatmaps, AFDB-style overlays). This step is export-only and does not modify clustering, the heatmap, or the interpretation report. Output is written to `Config.output_dir` (created if missing) or the current directory if `output_dir` is `None`. See **Output schema; Interface frequency JSON export** below for the file structure.
 
 ### Caching
 
@@ -238,7 +267,9 @@ v1 has no caching. API responses are fetched fresh on each notebook run; the str
 
 ### Performance expectations
 
-For PDB-CPX-130306 (~12 PDB entries, ~10–20 interfaces total), end-to-end runtime is dominated by the per-entry `bound_molecules` and per-ligand `bound_ligand_interactions` GETs — typically tens of HTTP round trips, on the order of 30–120 seconds depending on PDBe latency. The Jaccard matrix and clustering are negligible at this scale.
+Retrieval dominates runtime, and within it the per-ligand `bound_ligand_interactions` GETs, which are issued once per surviving ligand instance. Both the per-entry `bound_molecules` calls and the per-ligand calls are issued concurrently on a thread pool of `Config.max_workers` (default 8), with all entries' ligands pooled into a single flat batch so that an entry with many ligands and an entry with one are balanced across the same workers. Each worker holds a thread-local `requests.Session`, so connections are reused rather than renegotiated per call.
+
+Measured on PDB-CPX-140195 (114 PDB entries, 130 interfaces after filtering): the ligand step takes 32.0 s sequentially and 4.5 s with 8 workers, a factor of 7.2, returning identical contacts. End to end, all phases except the Mol* rendering complete in under 10 s. The Jaccard matrix, clustering and report are negligible at this scale.
 
 ### Invocation
 
@@ -276,7 +307,7 @@ Each row in the PISA response is an atom-level contact. Atom-level contacts shar
 
 Aggregation is per interface and per key. For homodimers, ordering preserves both directions of a symmetric contact as distinct elements (correct physical behaviour).
 
-### Output schema — Structure table
+### Output schema: Structure table
 
 One row per interface, keyed on `(pdb_id, assembly_id, interface_id)`. Columns:
 
@@ -287,19 +318,19 @@ One row per interface, keyed on `(pdb_id, assembly_id, interface_id)`. Columns:
 - **Cluster assignment**: `cluster_id` at the default cut.
 - **Quality**: `n_residues_dropped_no_uniprot`, `fetch_date` (ISO-8601 date).
 
-### Output schema — Similarity matrix
+### Output schema: Similarity matrix
 
 A square `numpy` array of shape `(n_interfaces, n_interfaces)` of pairwise Jaccard similarities computed on the UniProt-keyed, typed interaction-pair sets. Symmetric. Diagonal is exactly 1.0. Index order matches the structure table row order.
 
-A second matrix is computed alongside using the *untyped* sets (bond_type collapsed) as a robustness check. Substantial divergence between the two suggests bond-type assignment is doing more work than the residue-pair topology — informative but not actionable in v1.
+A second matrix is computed alongside using the *untyped* sets (bond_type collapsed) as a robustness check. Substantial divergence between the two suggests bond-type assignment is doing more work than the residue-pair topology, informative but not actionable in v1.
 
-### Output schema — Clusters
+### Output schema: Clusters
 
 `scipy.cluster.hierarchy.linkage` output (an `(n−1, 4)` array) plus a flat assignment vector at `cluster_distance_cut`. The flat vector populates the `cluster_id` column of the structure table.
 
 A **cluster-cut sweep helper** (`similarity.sweep_cluster_cuts`) returns cluster count and top-5 cluster sizes at standard cuts (0.30, 0.40, 0.50, 0.55, 0.60, 0.65, 0.70). The notebook displays this table alongside the dendrogram so the user can pick `cluster_distance_cut` from data: a stable plateau (same cluster count across a range of cuts) is a defensible default; a fragmentation gradient calls for inspecting the dendrogram. The default of 0.5 is a sensible starting point but is not guaranteed to be optimal for every complex.
 
-### Output schema — Conserved residues and conserved interaction pairs
+### Output schema: Conserved residues and conserved interaction pairs
 
 Two sets:
 - Conserved residues: UniProt-keyed residues `(unp_acc, unp_seq_id, role)` present in at least `conservation_threshold` × N interfaces.
@@ -307,9 +338,9 @@ Two sets:
 
 Default threshold 0.8.
 
-### Output schema — Annotation overlap views
+### Output schema: Annotation overlap views
 
-Three long-form dataframes (one per stream — mutations, modifications, ligands), each with columns:
+Three long-form dataframes (one per stream, mutations, modifications, ligands), each with columns:
 
 - `pdb_id`, `assembly_id`, `interface_id`
 - `auth_asym_id`, `auth_seq_id`, `ins_code`
@@ -324,10 +355,10 @@ Two helpers are exposed; both produce a per-contact diff between two clusters bu
 
 **`outputs.compare_cluster_contacts(records, cluster_result, cluster_a=None, cluster_b=None, typed=True, top_n=20, partner_map=None, ...)`** is the **interface rewiring** helper. It returns a DataFrame with columns `contact`, `cluster_A_count`, `cluster_B_count`, `cluster_A_fraction`, `cluster_B_fraction`, `fraction_difference`, `enrichment_direction`, sorted by `|fraction_difference|` descending and capped at `top_n`. The direction label categorises each contact as:
 
-- `shared core` — fraction ≥ `shared_core_threshold` (default 0.8) in *both* clusters; the conserved core that is unchanged between states;
-- `A-enriched` — `fraction_difference ≥ a_enriched_threshold` (default 0.5); a contact strongly gained in state A relative to state B;
-- `B-enriched` — `fraction_difference ≤ -a_enriched_threshold`; a contact strongly gained in state B;
-- `rare` — neither state shows strong enrichment (the long tail).
+- `shared core`: fraction ≥ `shared_core_threshold` (default 0.8) in *both* clusters; the conserved core that is unchanged between states;
+- `higher in A`: `fraction_difference ≥ a_enriched_threshold` (default 0.5); a contact strongly gained in state A relative to state B;
+- `higher in B`: `fraction_difference ≤ -a_enriched_threshold`; a contact strongly gained in state B;
+- `rare`: neither state shows strong enrichment (the long tail).
 
 When `cluster_a` and `cluster_b` are omitted, the two largest non-singleton clusters are selected automatically. When `typed=False`, contacts collapse across `bond_type` so a residue-pair shared via different bond types counts once. The chosen cluster ids and sizes are surfaced via `df.attrs["cluster_a"] / "cluster_b" / "size_a" / "size_b" / "typed"` for downstream display.
 
@@ -336,46 +367,49 @@ When `cluster_a` and `cluster_b` are omitted, the two largest non-singleton clus
 Both are the natural follow-up to the cluster interpretation report: the report tells you *what each interaction state is enriched for*; the comparison tells you *what specifically distinguishes one state from another*. Worked example on ACE2–Spike (cluster 13 = Omicron, cluster 25 = engineered ACE2):
 
 - `ACE2:353-S:496 hydrogen_bond` is present in 22/23 cluster-25 members and 0/34 cluster-13 members (`B-enriched`, fraction_difference ≈ −0.96).
-- `ACE2:19-S:477 hydrogen_bond` is present in 30/34 cluster-13 members and 0/23 cluster-25 members (`A-enriched`, fraction_difference ≈ +0.88) — the S477N variant signature.
-- `ACE2:83-S:489 hydrogen_bond` is present in nearly every member of both clusters — flagged `shared core` because it is part of the conserved core that is unchanged between states.
+- `ACE2:19-S:477 hydrogen_bond` is present in 30/34 cluster-13 members and 0/23 cluster-25 members (`A-enriched`, fraction_difference ≈ +0.88), the S477N variant signature.
+- `ACE2:83-S:489 hydrogen_bond` is present in nearly every member of both clusters, flagged `shared core` because it is part of the conserved core that is unchanged between states.
 
 The comparison directly surfaces the structural distinction between two affinity-enhancement strategies (variant mutation vs. ACE2 engineering): variants strengthen existing contacts, engineering introduces new contacts at different positions.
 
-### Output schema — Cluster interpretation report
+### Output schema: Cluster interpretation report
 
 A pandas DataFrame, one row per **interface interaction state** (cluster), with columns:
 
 - `cluster_id`, `cluster_size`, `member_pdb_ids`
-- `experimental_methods` — comma-joined `"method (count)"`, e.g. `"X-ray diffraction (24), Electron microscopy (10)"`. Per-interface counts.
-- `resolution_range` — `"min–max Å (median X.XX, n=N)"`. `n` may be less than `cluster_size` if some assemblies lack a resolution value.
-- `interface_area_range` — `"min–max Å² (median X, n=N)"`. Sourced from PISA `interface_area` per interface.
-- **Per-interface distributions** (one numeric column each — `min` / `median` / `mean` / `max`), computed across the cluster's members:
-  - `residue_pair_count_*` — distinct UniProt-keyed residue–residue pairs per interface (collapsed across `bond_type`).
-  - `interaction_count_*` — distinct typed-tuple interactions per interface (the input to Jaccard similarity).
-  - `interface_area_*` — PISA `interface_area` per interface in Å² (None when missing).
-- `contact_density_median` — `interaction_count_median / interface_area_median`, in interactions/Å². None when either median is missing or zero. A coarse density measure that distinguishes "compact, contact-rich" interfaces from "extended, sparse" ones.
-- `core_contacts` — semicolon-joined `"PartnerA:X{pos}-PartnerB:Y{pos} bond_type (count/denominator, pct%)"` for typed contacts present in ≥ `conservation_threshold` of cluster members. Sorted by `count` descending, then by contact label. Capped at the top 10. Complements `enriched_contacts`: the core surface is *what is conserved within the state*; enriched contacts are *what distinguishes the state from the rest of the dataset*.
-- `enriched_contacts` — semicolon-joined `"PartnerA:X{pos}-PartnerB:Y{pos} bond_type (count, Nx)"` where `X` / `Y` are the canonical UniProt one-letter amino-acid codes (e.g. `KRAS:D33-RAF1:K84 salt_bridge`, `ACE2:D38-S:N501 hydrogen_bond`). Identifies UniProt-keyed interaction-pair tuples enriched in this cluster vs the rest of the dataset (same enrichment heuristic as annotations). Top `top_n_contacts` per cluster (default 10). Partner labels come from `partner_map`; residue identities come from `unp_one_letter_code_{1,2}` in the interface API response, captured into `InterfaceRecord.residue_identity` during Phase 2. The one-letter code is the canonical UniProt residue, not the deposited residue — variants are surfaced separately via the mutation overlap. This surfaces interface-level cluster signatures directly: e.g. for ACE2–Spike cluster 13, `ACE2:D38-S:N501 hydrogen_bond (12, 8.5×)` corresponds exactly to the N501Y Omicron mutation. The contact enrichment frequently surfaces biological cluster signatures even when no mutation/modification/ligand annotation is recorded.
-- `enriched_mutations`, `enriched_modifications`, `enriched_ligands` — semicolon-joined `"label (count, Nx)"` or `"label (count, exclusive)"`
-- `interfaces_with_any_mutation`, `interfaces_with_any_modification`, `interfaces_with_any_ligand` — count of cluster-member interfaces carrying at least one at-interface annotation of that stream
-- `annotation_correlate_present` (bool) — true if any stream has at least one enriched label
-- `qc_warnings` — semicolon-joined warnings; empty string when none. See *Cluster QC warnings* below.
-- `notes` (free-text narrative summary in `"interface interaction state {id} ({n} interfaces)"` form, with the methodology summary as a `[methods: ...; resolution: ...]` suffix and the per-state statistics, core contacts, and QC warnings appended on indented lines for printable display)
+- `experimental_methods`: comma-joined `"method (count)"`, e.g. `"X-ray diffraction (24), Electron microscopy (10)"`. Per-interface counts.
+- `resolution_range`: `"min–max Å (median X.XX, n=N)"`. `n` may be less than `cluster_size` if some assemblies lack a resolution value.
+- `interface_area_range`: `"min–max Å² (median X, n=N)"`. Sourced from PISA `interface_area` per interface.
+- **Per-interface distributions** (one numeric column each, `min` / `median` / `mean` / `max`), computed across the cluster's members:
+  - `residue_pair_count_*`: distinct UniProt-keyed residue–residue pairs per interface (collapsed across `bond_type`).
+  - `interaction_count_*`: distinct typed-tuple interactions per interface (the input to Jaccard similarity).
+  - `interface_area_*`: PISA `interface_area` per interface in Å² (None when missing).
+- `contact_density_median`: `interaction_count_median / interface_area_median`, in interactions/Å². None when either median is missing or zero. A coarse density measure that distinguishes "compact, contact-rich" interfaces from "extended, sparse" ones.
+- `core_contacts`: semicolon-joined `"PartnerA:X{pos}-PartnerB:Y{pos} bond_type (count/denominator, pct%)"` for typed contacts present in ≥ `conservation_threshold` of cluster members. Sorted by `count` descending, then by contact label. Capped at the top 10. This is *what is conserved within the state*; `cluster_contacts` additionally gives the frequency of each contact outside it.
+- `cluster_contacts`: semicolon-joined `"PartnerA:X{pos}-PartnerB:Y{pos} bond_type (n/N interfaces = pct%, n/N entries; rest n/N = pct%)"`, where `X` / `Y` are the canonical UniProt one-letter amino-acid codes (e.g. `KRAS:D33-RAF1:K84 salt_bridge`). Every typed contact present in the cluster, with its counts inside and outside, at interface and entry level. Top `top_n_contacts` per cluster (default 10), ordered by in-cluster frequency then by rarity outside. Partner labels come from `partner_map`; residue identities come from `unp_one_letter_code_{1,2}` in the interface API response, captured into `InterfaceRecord.residue_identity` during Phase 2. The one-letter code is the canonical UniProt residue, not the deposited residue; variants are surfaced separately via the mutation overlap. No enrichment statistic is attached; see *Cluster contact and annotation profiles*.
+- `cluster_contacts_shown`, `cluster_contacts_total`, how many contacts are displayed and how many passed `min_interfaces`, so truncation is visible.
+- `cluster_mutations`, `cluster_modifications`, `cluster_ligands`, semicolon-joined `"label (n/N interfaces = pct%, n/N entries; rest n/N = pct%)"`
+- `interfaces_with_any_mutation`, `interfaces_with_any_modification`, `interfaces_with_any_ligand`, count of cluster-member interfaces carrying at least one at-interface annotation of that stream
+- `has_annotations` (bool), true if any annotation stream has at least one label on a member interface. This replaces `annotation_correlate_present`, which was true only when a label passed the removed enrichment rule.
+- `qc_warnings`: semicolon-joined warnings; empty string when none. See *Cluster QC warnings* below.
+- `notes` (free-text narrative summary in `"interface interaction state {id} ({n} interfaces)"` form, with the methodology summary as a `[methods: ...; resolution: ...]` suffix and the per-state statistics, core contacts, cluster contacts and QC warnings appended on indented lines for printable display)
 
 ### Cluster QC warnings
 
-The cluster interpretation report attaches automatic warnings to flag clusters that are likely to be misinterpreted. Each warning is included in the row's `qc_warnings` column (semicolon-joined) and surfaced in `notes`. The four warnings:
+The cluster interpretation report attaches automatic warnings to flag clusters that are likely to be misinterpreted. Each warning is included in the row's `qc_warnings` column (semicolon-joined) and surfaced in `notes`. The five warnings:
 
-- **Singleton** (`"singleton cluster; interpret cautiously"`) — `cluster_size == 1`. A single interface cannot establish a recurring state on its own.
-- **Sparse fingerprint** (`"sparse interaction fingerprint; clustering may reflect few contacts"`) — `residue_pair_count_median < sparse_pair_threshold` (default 5). Clusters built from very few residue pairs per interface are sensitive to single-bond differences and unreliable.
-- **Tiny interface** (`"small interface area; possible weak or non-biological interface"`) — `interface_area_median < tiny_area_threshold_a2` (default 500 Å²). Below this is the regime of crystal contacts and weak transient interactions, not stable biological dimers.
-- **Mixed UniProt residue range** (`"residue range poorly overlaps the dominant cluster; this may indicate a different domain, processed product, or polyprotein segment"`) — for each `(unp_accession, role)` in the cluster, the `(min, max)` UniProt position is compared against the dominant (largest) cluster's range; if the overlap fraction (overlap length / span of the larger interval) is below `range_overlap_min` (default 0.2) for any partner, the warning fires. This catches polyprotein / processed-product / domain mixups, e.g. HIV gag-pol where different processed proteins map to the same UniProt accession at very different residue ranges. The dominant cluster never receives this warning (it is the reference).
+- **Singleton** (`"singleton cluster; interpret cautiously"`), `cluster_size == 1`. A single interface cannot establish a recurring state on its own.
+- **Sparse fingerprint** (`"sparse interaction fingerprint; clustering may reflect few contacts"`), `residue_pair_count_median < sparse_pair_threshold` (default 5). Clusters built from very few residue pairs per interface are sensitive to single-bond differences and unreliable.
+- **Tiny interface** (`"small interface area; possible weak or non-biological interface"`), `interface_area_median < tiny_area_threshold_a2` (default 500 Å²). Below this is the regime of crystal contacts and weak transient interactions, not stable biological dimers.
+- **Mixed UniProt residue range** (`"residue range poorly overlaps the dominant cluster; this may indicate a different domain, processed product, or polyprotein segment"`), for each `(unp_accession, role)` in the cluster, the `(min, max)` UniProt position is compared against the dominant (largest) cluster's range; if the overlap fraction (overlap length / span of the larger interval) is below `range_overlap_min` (default 0.2) for any partner, the warning fires. This catches polyprotein / processed-product / domain mixups, e.g. HIV gag-pol where different processed proteins map to the same UniProt accession at very different residue ranges. The dominant cluster never receives this warning (it is the reference).
 
-All thresholds are exposed as `cluster_interpretation_report` parameters (`sparse_pair_threshold`, `tiny_area_threshold_a2`, `range_overlap_min`) so they can be tuned per dataset.
+- **Resolution gap** (`"median resolution X.XX A vs Y.YY A for the dominant cluster; missing contacts here may be undetected rather than absent"`), the cluster's median resolution exceeds the dominant cluster's by more than `resolution_gap_a` (default 1.0 Å). Hydrogen bonds and salt bridges are geometry-derived, so a cluster resolved substantially worse may differ because contacts went undetected rather than because the interface changed. The dominant cluster never receives this warning (it is the reference).
 
-### Output schema — Interface frequency JSON export
+All thresholds are exposed as `cluster_interpretation_report` parameters (`sparse_pair_threshold`, `tiny_area_threshold_a2`, `range_overlap_min`, `resolution_gap_a`) so they can be tuned per dataset.
 
-A self-contained JSON file written to `Config.output_dir` (or the current working directory if `output_dir` is `None`) by `export_interface_frequency_json`. The filename is `{complex_id}_interface_frequencies.json`. The file is consumed by frontend visualisation tooling (Mol* colouring by conservation, residue–residue contact matrices/heatmaps, AFDB-style overlays) and is independent of clustering. The export is **always** produced from the full set of retained interfaces — interaction states are not partitioned in this view.
+### Output schema: Interface frequency JSON export
+
+A self-contained JSON file written to `Config.output_dir` (or the current working directory if `output_dir` is `None`) by `export_interface_frequency_json`. The filename is `{complex_id}_interface_frequencies.json`. The file is consumed by frontend visualisation tooling (Mol* colouring by conservation, residue–residue contact matrices/heatmaps, AFDB-style overlays) and is independent of clustering. The export is **always** produced from the full set of retained interfaces, interaction states are not partitioned in this view.
 
 **Top-level structure.**
 
@@ -399,7 +433,7 @@ A self-contained JSON file written to `Config.output_dir` (or the current workin
 | `n_interfaces` | total retained interfaces (denominator for all frequencies) |
 | `representation` | fixed string: `"UniProt residue-level interface interactions"` |
 | `contact_definition` | fixed string: `"PISA-derived residue-residue interface interactions mapped to UniProt residue positions"` |
-| `typed_contacts` | bool — true when bond type is part of the contact key |
+| `typed_contacts` | bool, true when bond type is part of the contact key |
 
 **`partners` array.** One object per `(unp_accession, role)` pair. Roles observed in the records and in `partner_map` are unioned, so homodimers (one accession, two roles) and heterodimers both expose role 1 *and* role 2:
 
@@ -464,43 +498,54 @@ A self-contained JSON file written to `Config.output_dir` (or the current workin
 
 `partner_1` is always the role-1 partner and `partner_2` the role-2 partner; partners are not reordered alphabetically or by accession. For homodimers the role assignment chosen during representation building is preserved.
 
-**Determinism.** Sort orders are explicit on both `residue_frequencies` and `contact_frequencies`; output is independent of Python set/dict iteration order. Preview tables shown in the notebook (top-N by frequency descending) sort the in-memory copy for readability — they do not affect the on-disk file.
+**Determinism.** Sort orders are explicit on both `residue_frequencies` and `contact_frequencies`; output is independent of Python set/dict iteration order. Preview tables shown in the notebook (top-N by frequency descending) sort the in-memory copy for readability and do not affect the on-disk file.
 
 **Constraints.**
 
 - This is an export-only feature. It does not modify clustering, the heatmap, the cluster interpretation report, or any earlier output.
 - No additional web/API calls are made to enrich partner names; the function consumes only what is already in `records`, `partner_map`, and the optionally passed `complex_details`.
 
-### Enrichment heuristic
+### Cluster contact and annotation profiles
 
-For each cluster and each annotation stream, a label is reported when:
+**No enrichment statistic is computed.** For each cluster, every contact present in it and every annotation label observed on its members are reported with counts inside the cluster and counts in the rest of the dataset, at both interface and distinct-PDB-entry level. There is no fold-enrichment, p-value or significance threshold, and the display order (in-cluster frequency descending, then rarest outside) is a reading convenience rather than a ranking by significance.
 
-- It appears on at least `min_count` distinct cluster-member interfaces (default 2) AND its proportion-of-interfaces in the cluster is at least `min_enrichment` × its proportion in the rest of the dataset (default 2.0); OR
-- It is **exclusive** to this cluster — zero occurrences in the rest of the dataset — and appears on at least one member interface.
+**Why the earlier heuristic was removed.** The original rule reported a label when it occurred on at least `min_count` member interfaces and was at least `min_enrichment` times more frequent than outside, or when it was exclusive to the cluster with at least one member. Applied to contacts, that rule is circular: clusters are defined by Jaccard similarity over the same typed contacts being tested, so a cluster cannot fail to appear enriched for the contacts that separated it.
 
-Counts are by distinct interface (de-duplicated on `(pdb_id, assembly_id, interface_id)`), so a ligand with multiple atom-level contacts on one interface counts once.
+The effect was measured on PDB-CPX-140195 (130 interfaces, 13 clusters). Permuting cluster labels at random while preserving cluster sizes, and re-running the rule:
 
-This replaces the earlier "must dominate ≥60% of cluster members" rule, which missed combinations of low-frequency markers. Variant-class signatures — where each individual mutation hits 1–3 cluster members but together define the cluster — are now correctly surfaced. Worked example (PDB-CPX-140195, ACE2–Spike): cluster 13 (n=34) is flagged as carrying S477N (3 interfaces, 8.5×), Q498R (3, 8.5×), Q493R (1, exclusive) — the canonical Omicron RBD signature.
+| labels | contacts passing the rule | of which "exclusive" |
+|---|---|---|
+| real clustering | 57 | 17 |
+| random permutation, 5 draws | 29, 24, 31, 27, 21 (mean 26) | 9–13 |
 
-Both `min_count` and `min_enrichment` are exposed as `cluster_interpretation_report` parameters; the defaults (2 and 2.0) are tuned for v1 sample sizes (~10–150 interfaces per complex). At larger N a stricter enrichment threshold may be appropriate.
+Approximately half of the reported contacts were reproducible from labels carrying no information, and the `exclusive` branch was worse: it admitted a contact seen on one interface and absent from the other 129, reported as infinite fold.
+
+**Why a test statistic was not adopted instead.** Fisher's exact test (one-sided, on contact presence by cluster membership) with Benjamini–Hochberg control across the 190 tests, and a Haldane–Anscombe correction on the reported fold, was prototyped. It behaved correctly, cutting the permuted-label yield to 0–1 while retaining 16 associations from the real clustering, and it disposed of the single-interface cases without a special rule (1 of 1 versus 0 of 129 gives p = 0.0077, q = 0.073, rejected). It was not adopted for two reasons: it does not address the circularity, which is the substantive problem; and its independence assumption fails, since one entry may contribute several assemblies and depositions arrive in laboratory-correlated series, so the p-values would be anticonservative. A q-value would have made the output appear more rigorous while leaving both problems in place.
+
+**The annotation streams are not circular**, since mutations, modifications and ligands never enter the clustering, so a statistic would be defensible there. They are nonetheless reported as counts, for the independence reason above.
+
+**Entry-level counts.** Counts are given by distinct interface and by distinct PDB entry, so that a contact present on two interfaces contributed by a single entry is distinguishable from one present in two independent depositions. Annotation counts are de-duplicated on `(pdb_id, assembly_id, interface_id)` and on `pdb_id` respectively, so a ligand with several contact tuples on one interface counts once.
+
+**Truncation is reported.** The contact line states `showing N of M`, and the columns `cluster_contacts_shown` and `cluster_contacts_total` carry the same figures, so a cluster with ten contacts is distinguishable from one truncated at ten.
 
 ### Confidence interpretation and prioritisation rules
 
 - **Jaccard similarity** is interpreted as the fraction of interaction-pair-and-bond-type tuples shared between two interfaces. It is a descriptive measure, not a probability.
 - **Cluster compactness** at the default cut is informative but not load-bearing. The dendrogram is the source of truth; the flat cut is a convenience.
 - **Conservation threshold** is a knob for the user. Default 0.8. Setting to 1.0 produces the strict conserved core; setting to 0.5 produces the majority-present set, which is a different question.
-- **Annotation correlate present** means the cluster has a distinctive feature (mutation, ligand class, modification) that distinguishes it from other clusters. Absence of correlate is *not* a failure; the report says so explicitly.
+- **`has_annotations`** means at least one member interface carries a mutation, modification or ligand contact at the interface. It is a statement about presence, not about distinctiveness: whether a label is distinctive is left to the reader, who is given the in-cluster and rest-of-dataset counts. Absence is *not* a failure; the report says so explicitly.
+- **Counts are not tests.** No output of this workflow supports a claim of statistical significance. Frequencies describe the deposition set analysed, which is a convenience sample containing repeated assemblies and laboratory-correlated series.
 
 ### Failure handling and empty-result behaviour
 
-- Empty annotation streams (no mutations, no ligands) produce empty long-form dataframes and zero counts in the structure table — not errors.
-- A cluster with no annotation correlate produces a row in the cluster interpretation report with `annotation_correlate_present = False` and a `notes` value such as `"No distinguishing mutation, modification, or ligand identified for this cluster's members."`
+- Empty annotation streams (no mutations, no ligands) produce empty long-form dataframes and zero counts in the structure table, not errors.
+- A cluster whose members carry no at-interface annotation produces a row with `has_annotations = False` and a `notes` value stating that no mutation, modification or ligand was recorded at the interface and that no member carries any.
 - An interface with all residues dropped for missing UniProt mapping (pathological) is excluded from the similarity matrix and flagged in the structure table with `n_residues_dropped_no_uniprot` equal to the original residue count and zero contribution to clustering.
 
 ### Ambiguity handling
 
 - If two interfaces have identical UniProt-keyed interaction-pair sets but differ in author space (e.g. different chain labels), they are correctly identical at Jaccard 1.0 and will collapse to a single cluster at any positive distance threshold.
-- If `(unp_accession_1, unp_accession_2)` ordering is inconsistent across interfaces, role assignment is reversed for the inconsistent entries before aggregation. This is not arbitrary — the partner under `unp_accession_1` for the *majority* of interfaces is taken as the canonical role-1 partner.
+- If `(unp_accession_1, unp_accession_2)` ordering is inconsistent across interfaces, role assignment is reversed for the inconsistent entries before aggregation. This is not arbitrary, the partner under `unp_accession_1` for the *majority* of interfaces is taken as the canonical role-1 partner.
 
 ---
 
@@ -540,19 +585,19 @@ Both `min_count` and `min_enrichment` are exposed as `cluster_interpretation_rep
 
 3D viewers for interface inspection, rendered via the `pdbe_interfaces.visualize` module:
 
-- `visualize_interface(record, overlap=None)` — render one interface.
-- `visualize_cluster_representative(cluster_id, records, cluster_result, overlap=None, assembly_metadata=None)` — pick a representative and render it.
-- `visualize_clusters_grid(records, cluster_result, overlap=None, assembly_metadata=None, min_cluster_size=2, max_clusters=8)` — render one representative per cluster, stacked vertically, with a markdown header naming each. Defaults skip singletons and cap at 8 clusters; override to widen or narrow.
+- `visualize_interface(record, overlap=None)`: render one interface.
+- `visualize_cluster_representative(cluster_id, records, cluster_result, overlap=None, assembly_metadata=None)`: pick a representative and render it.
+- `visualize_clusters_grid(records, cluster_result, overlap=None, assembly_metadata=None, min_cluster_size=2, max_clusters=8)`: render one representative per cluster, stacked vertically, with a markdown header naming each. Defaults skip singletons and cap at 8 clusters; override to widen or narrow.
 
 **Representative selection:** when `assembly_metadata` is provided, the representative is the cluster member with the **lowest (best) resolution**. Ties broken by `(pdb_id, assembly_id, interface_id)` so the choice is deterministic across runs. Members without a resolution value (NMR, unreported) are de-prioritised. When metadata is not provided, falls back to the first member by the same deterministic sort. This avoids the pitfall of "first-by-API-order" selection where a low-resolution outlier could become the visual representative of the cluster.
 
 **Library:** `molviewspec` (Python builder for MolViewSpec) → embedded Mol* viewer.
 
-**Encoding:** both partner chains as a semi-transparent molecular surface in a neutral colour (default `lightgray`, opacity 0.4) — a gray backdrop so the colored interface residues stand out. Interface residues drawn as ball-and-stick in the chain's colour (`cornflowerblue` / `lightcoral`); chain identity is read from the stick colour, not the surface colour. At-interface mutations overlaid red. `stick_size_factor` (default 0.5) scales the sticks; `surface_color` is exposed for users who want per-chain coloured surfaces back (pass any colour name or set per-chain by editing `PARTNER_COLOURS`).
+**Encoding:** both partner chains as a semi-transparent molecular surface in a neutral colour (default `lightgray`, opacity 0.4), giving a neutral backdrop so the coloured interface residues stand out. Interface residues drawn as ball-and-stick in the chain's colour (`cornflowerblue` / `lightcoral`); chain identity is read from the stick colour, not the surface colour. At-interface mutations overlaid red. `stick_size_factor` (default 0.5) scales the sticks; `surface_color` is exposed for users who want per-chain coloured surfaces back (pass any colour name or set per-chain by editing `PARTNER_COLOURS`).
 
 **Camera:** the viewer auto-focuses on the union of all interface residues with a small padding factor (`zoom_radius_factor`, default 1.3) so the binding interface is filling the viewport on first render. Both `surface_opacity` and `zoom_radius_factor` are exposed on all three viewer helpers.
 
-**Selectors:** `auth_asym_id` and `auth_seq_id` — same author numbering used elsewhere in the workflow, so no conversion is needed.
+**Selectors:** `auth_asym_id` and `auth_seq_id`, same author numbering used elsewhere in the workflow, so no conversion is needed.
 
 **Source structure:** PDBe coordinate file, `https://www.ebi.ac.uk/pdbe/entry-files/download/{pdb_id}.cif`.
 
@@ -563,9 +608,9 @@ Both `min_count` and `min_enrichment` are exposed as `cluster_interpretation_rep
 ### Residue-pair frequency heatmap and tables
 
 `outputs.interface_frequency_summary(records, partner_map=None, residue_identity=None)` returns a dict containing:
-- `pairs` — DataFrame of UniProt-keyed residue-pairs (collapsed across bond_type), sorted by how many interfaces contain each pair. Surfaces the "anchor" contacts that are universal across the dataset.
-- `partner_1_residues` / `partner_2_residues` — DataFrames listing each unique residue per partner with its count of participating interfaces. Surfaces "key residues" — the ones that always appear at the interface.
-- `pair_matrix`, `partner_1_labels`, `partner_2_labels` — 2D numpy matrix (partner-1 residues × partner-2 residues) with per-cell counts, plus axis labels. Suitable for a frequency heatmap.
+- `pairs`: DataFrame of UniProt-keyed residue-pairs (collapsed across bond_type), sorted by how many interfaces contain each pair. Surfaces the "anchor" contacts that are universal across the dataset.
+- `partner_1_residues` / `partner_2_residues`, DataFrames listing each unique residue per partner with its count of participating interfaces. Surfaces "key residues", the ones that always appear at the interface.
+- `pair_matrix`, `partner_1_labels`, `partner_2_labels`, 2D numpy matrix (partner-1 residues × partner-2 residues) with per-cell counts, plus axis labels. Suitable for a frequency heatmap.
 
 The notebook wraps these outputs in an **interactive widget** (`ipywidgets.Dropdown` + `IntSlider`):
 - Cluster dropdown: `"All clusters"` (full dataset) or a specific cluster ID. Re-runs `interface_frequency_summary` on the cluster's member subset and re-renders tables + heatmap on change.
@@ -597,14 +642,14 @@ This gives an "all interfaces vs cluster X" comparison without re-running the wo
 
 The user is a structural biologist or computational scientist who wants to understand how a known protein–protein complex's interface varies across deposited structures.
 
-### Stage 1 — Open the notebook and configure
+### Stage 1: Open the notebook and configure
 
 - **User action.** Open `notebook.ipynb` in Jupyter. Edit the `Config` dataclass instance in the first cell to set `complex_id` to the target PDBe-KB complex. Optionally adjust thresholds, mutation filter, ligand blocklist.
 - **System action.** None yet.
 - **UI response.** The first cell renders the `Config` instance for confirmation.
 - **Decision points.** User decides whether to override defaults. The defaults are tuned for the working example; for other complexes the user may need to adjust the ligand blocklist (e.g. retain Mg²⁺ for kinases) or the conservation threshold.
 
-### Stage 2 — Run Phase 1: data retrieval
+### Stage 2: Run Phase 1: data retrieval
 
 - **User action.** Execute the Phase 1 cells.
 - **System action.** Calls `complex/details`, validates dimer status, builds `partner_map`. Calls `interface_interactions`. Calls mutation and modification batched POSTs. Calls per-entry `bound_molecules` and per-surviving-ligand `bound_ligand_interactions`.
@@ -615,33 +660,33 @@ The user is a structural biologist or computational scientist who wants to under
     - Network error: the underlying `requests` exception is raised. The user retries (no in-notebook retry logic in v1).
     - Non-dimer complex: `ValueError` with explanation. Out of scope for v1.
 
-### Stage 3 — Run Phase 2: build representations
+### Stage 3: Run Phase 2: build representations
 
 - **User action.** Execute the Phase 2 cells.
 - **System action.** Builds author-keyed and UniProt-keyed interaction-pair sets per interface. Drops residues lacking UniProt mappings. Runs the cross-structure consistency check.
 - **UI response.** Each cell prints: total interfaces, total interaction-pair tuples per interface (summary stats), residues dropped per interface, and any partner-order corrections applied.
 
-### Stage 4 — Run Phase 3: similarity and clustering
+### Stage 4: Run Phase 3: similarity and clustering
 
 - **User action.** Execute the Phase 3 cells.
 - **System action.** Computes Jaccard matrix (typed and untyped). Computes linkage. Renders heatmap and dendrogram.
 - **UI response.** Heatmap and dendrogram inline. Brief printed summary: number of clusters at the default cut, range of Jaccard values.
-- **Decision points.** The user inspects the dendrogram. If the default cut produces too few or too many clusters, the user adjusts `Config.cluster_distance_cut` and re-runs Phase 3 (Phase 1 and 2 do not need re-running — but in v1 the simplest workflow is to re-run all cells; caching is out of scope).
+- **Decision points.** The user inspects the dendrogram. If the default cut produces too few or too many clusters, the user adjusts `Config.cluster_distance_cut` and re-runs Phase 3 (Phase 1 and 2 do not need re-running, but in v1 the simplest workflow is to re-run all cells; caching is out of scope).
 
-### Stage 5 — Run Phase 4: annotation overlap
+### Stage 5: Run Phase 4: annotation overlap
 
 - **User action.** Execute the Phase 4 cells.
 - **System action.** Joins each annotation stream onto interface residues by author key. Attaches the UniProt key from the interface side. Builds the three long-form annotation overlap dataframes.
 - **UI response.** A printed count of matched annotations per stream. Optional inline display of each long-form dataframe (head only, full dataframe available via variable reference).
 
-### Stage 6 — Run Phase 5: summarisation and interpretation
+### Stage 6: Run Phase 5: summarisation and interpretation
 
 - **User action.** Execute the Phase 5 cells.
 - **System action.** Builds the structure table. Computes conserved residues and conserved interaction pairs at the configured threshold. Builds the cluster interpretation report.
 - **UI response.** Structure table rendered with `df.style`. Conserved sets printed as lists. Cluster interpretation report rendered as a dataframe.
-- **Decision points.** The user reads the cluster interpretation report and decides whether the clusters are interpretable. If most clusters report `annotation_correlate_present = False`, the user may want to broaden the mutation filter, narrow the ligand blocklist, or accept that the clusters are driven by features the annotation pipeline does not capture.
+- **Decision points.** The user reads the cluster interpretation report and decides whether the clusters are interpretable. If most clusters report `has_annotations = False`, the user may want to broaden the mutation filter, narrow the ligand blocklist, or accept that the clusters are driven by features the annotation pipeline does not capture.
 
-### Stage 7 — Iterate
+### Stage 7: Iterate
 
 - **User action.** Adjust `Config` parameters. Re-run.
 - **System action.** Same as above.
@@ -651,22 +696,28 @@ The user is a structural biologist or computational scientist who wants to under
 
 ## Component / Module Breakdown
 
-The notebook orchestrates and visualises. Logic lives in the `pdbe_interfaces/` package so it is testable and reusable. Each notebook cell is short — calls into the package, displays a result.
+The notebook orchestrates and visualises. Logic lives in the `pdbe_interfaces/` package so it is testable and reusable. Each notebook cell is short, calls into the package, displays a result.
 
 ### Project structure
 
 ```
 project_root/
-├── notebook.ipynb              # the deliverable; five-phase narrative
+├── notebook.ipynb              # the deliverable; phase narrative and configuration
 ├── pdbe_interfaces/            # helper package, importable from the notebook
 │   ├── __init__.py
+│   ├── config.py               # Config dataclass, logging setup
 │   ├── api.py                  # all PDBe API calls; returns parsed JSON dicts
-│   ├── representation.py       # builds residue keys, interaction-pair sets
+│   ├── representation.py       # residue keys, interaction-pair sets, interface selection
 │   ├── similarity.py           # Jaccard, distance matrix, clustering
 │   ├── annotations.py          # mutations, modifications, ligand workflow
-│   └── outputs.py              # structure table, conserved sets, cluster report
+│   ├── outputs.py              # structure table, conserved sets, cluster report, export
+│   ├── plots.py                # similarity heatmap, dendrogram, pair-frequency heatmap
+│   ├── explorer.py             # interactive residue-pair explorer (ipywidgets)
+│   └── visualize.py            # Mol* / MolViewSpec cluster representatives
 └── README.md
 ```
+
+`plots.py` and `explorer.py` exist so that figure construction and widget wiring do not sit in the notebook. `explorer.py` is deliberately absent from `__init__` so that importing the package does not require ipywidgets.
 
 ### Module: `pdbe_interfaces.api`
 
@@ -677,7 +728,11 @@ project_root/
 - **Functions.**
   ```python
   def fetch_complex_details(complex_id: str) -> dict
+  def fetch_complexes_for_pdb_id(pdb_id: str) -> list[dict]
+  def resolve_complex_id(identifier: str, require_dimer: bool = False) -> tuple[str, dict]
   def fetch_interface_interactions(complex_id: str) -> dict
+  def fetch_bound_molecules_many(pdb_ids: list[str], max_workers: int = 8) -> dict
+  def fetch_ligand_interactions_many(keys: list[tuple], max_workers: int = 8) -> list
   def fetch_mutations(pdb_ids: list[str]) -> dict
   def fetch_modifications(pdb_ids: list[str]) -> dict
   def fetch_bound_molecules(pdb_id: str) -> list[dict]
@@ -748,7 +803,7 @@ project_root/
   def cluster_interpretation_report(
       records, cluster_result, overlap,
       assembly_metadata=None, partner_map=None,
-      min_count=2, min_enrichment=2.0, top_n_contacts=10,
+      min_interfaces=1, top_n_contacts=10, resolution_gap_a=1.0,
       conservation_threshold=0.8,
       sparse_pair_threshold=5,
       tiny_area_threshold_a2=500.0,
@@ -775,8 +830,9 @@ project_root/
 
 ### Notebook (`notebook.ipynb`)
 
-- **Responsibility.** Five-phase narrative. Configuration. Visualisation. Markdown commentary explaining each phase.
-- **Implementation notes.** Each cell is short — calls into the package, displays a result. Markdown cells precede each code cell with a one-sentence explanation aimed at the user audience (see User-Facing Explanations).
+- **Responsibility.** Phase narrative, configuration, and display. No implementation.
+- **Implementation notes.** Every code cell calls into the package and displays a result; the whole notebook is under 100 lines of code, the largest cell being the `Config` instantiation. The configuration cell writes out every parameter explicitly, with an inline comment on each, so that users can see and edit the settings without consulting the dataclass definition.
+- **Markdown cells** precede each phase and state both what the phase does and the assumptions and limitations that apply to its output: sampling bias and assembly filtering in Phase 1, contact vocabulary and detection dependence in Phase 2, the arbitrariness of the cut in Phase 3, discarded annotations in Phase 4, counts-not-tests and the circularity argument in Phase 5, evidence weight in Phase 5a, threshold conventions in Phase 5b, representative selection in Phase 6, and the deposition-set caveat in Phase 7. The limitations travel with the output rather than living in a separate document.
 
 ---
 
@@ -798,73 +854,73 @@ The notebook embeds the following copy verbatim. All text is for a technically l
 
 ### Phase 1 preamble
 
-> **Phase 1 — Data retrieval.** We validate the complex ID, confirm it is a dimer (v1 limitation, set by the `interface_interactions` API), and fetch interfaces, mutations, modifications, and ligands. Annotations covering all PDB entries are batched. Per-entry calls are sequential. Expect 30–120 seconds for a complex like the working example.
+> **Phase 1; Data retrieval.** We validate the complex ID, confirm it is a dimer (v1 limitation, set by the `interface_interactions` API), and fetch interfaces, mutations, modifications, and ligands. Annotations covering all PDB entries are batched. Per-entry calls are sequential. Expect 30–120 seconds for a complex like the working example.
 
 ### Phase 2 preamble
 
-> **Phase 2 — Build representations.** Each interface is represented as a set of `(residue_1, residue_2, bond_type)` tuples. We build two versions: one keyed by author chain and residue number (used for joining annotations within a structure), one keyed by UniProt accession and sequence position with a role label (used for comparison across structures). Interface residues lacking a UniProt mapping are dropped — these are usually termini or expression-tag residues, and they are not comparable across structures anyway.
+> **Phase 2; Build representations.** Each interface is represented as a set of `(residue_1, residue_2, bond_type)` tuples. We build two versions: one keyed by author chain and residue number (used for joining annotations within a structure), one keyed by UniProt accession and sequence position with a role label (used for comparison across structures). Interface residues lacking a UniProt mapping are dropped, these are usually termini or expression-tag residues, and they are not comparable across structures anyway.
 
 ### Phase 3 preamble
 
-> **Phase 3 — Similarity and clustering.** Jaccard similarity between two interfaces is the fraction of interaction-pair tuples they share. We cluster by hierarchical clustering with average linkage on `1 − Jaccard` distance. The dendrogram is the source of truth — adjust `cluster_distance_cut` after looking at it.
+> **Phase 3; Similarity and clustering.** Jaccard similarity between two interfaces is the fraction of interaction-pair tuples they share. We cluster by hierarchical clustering with average linkage on `1 − Jaccard` distance. The dendrogram is the source of truth, adjust `cluster_distance_cut` after looking at it.
 
 ### Phase 4 preamble
 
-> **Phase 4 — Annotation overlap.** Mutations, modifications, and ligand-contact residues are joined onto interface residues. Annotations falling outside the interface are dropped: this workflow is about what happens *at* the interface. A residue carrying a peripheral mutation will not show that mutation in its overlap row; the structure table reflects interface counts only.
+> **Phase 4; Annotation overlap.** Mutations, modifications, and ligand-contact residues are joined onto interface residues. Annotations falling outside the interface are dropped: this workflow is about what happens *at* the interface. A residue carrying a peripheral mutation will not show that mutation in its overlap row; the structure table reflects interface counts only.
 
 ### Phase 5 preamble
 
-> **Phase 5 — Summarisation and interpretation.** The structure table consolidates one row per interface. Conserved residues and conserved interaction pairs are those present in at least `conservation_threshold` of interfaces (default 0.8). The cluster interpretation report reads each cluster as a candidate **interface interaction state** and surfaces, for each: per-interface distributions of residue-pair count, typed-interaction count, and PISA interface area; median contact density; **core contacts** present in ≥ `conservation_threshold` of cluster members; enriched contacts and annotations vs the rest of the dataset; and **QC warnings** for singleton clusters, sparse fingerprints, tiny interfaces, and clusters whose UniProt residue range poorly overlaps the dominant cluster. Clusters with no obvious correlate are reported as such, not speculated about.
+> **Phase 5; Summarisation and interpretation.** The structure table consolidates one row per interface. Conserved residues and conserved interaction pairs are those present in at least `conservation_threshold` of interfaces (default 0.8). The cluster interpretation report reads each cluster as a candidate **interface interaction state** and surfaces, for each: per-interface distributions of residue-pair count, typed-interaction count, and PISA interface area; median contact density; **core contacts** present in ≥ `conservation_threshold` of cluster members; enriched contacts and annotations vs the rest of the dataset; and **QC warnings** for singleton clusters, sparse fingerprints, tiny interfaces, and clusters whose UniProt residue range poorly overlaps the dominant cluster. Clusters with no obvious correlate are reported as such, not speculated about.
 
-### Phase 5b preamble — interface rewiring
+### Phase 5b preamble: interface rewiring
 
-> **Phase 5b — Interface rewiring between interaction states.** A head-to-head comparison of two states. Each typed contact is labelled `shared core` (≥ 80% in both states), `A-enriched` / `B-enriched` (fraction differs by ≥ 0.5), or `rare`. Defaults to the two largest non-singleton states; pass `cluster_a` / `cluster_b` to compare any pair from the report above.
+> **Phase 5b; Interface rewiring between interaction states.** A head-to-head comparison of two states. Each typed contact is labelled `shared core` (≥ 80% in both states), `A-enriched` / `B-enriched` (fraction differs by ≥ 0.5), or `rare`. Defaults to the two largest non-singleton states; pass `cluster_a` / `cluster_b` to compare any pair from the report above.
 
-### Tooltip / inline help — conservation threshold
+### Tooltip / inline help: conservation threshold
 
 > Default `0.8` tolerates 1–2 drop-outs at typical sample sizes (N≈10–15). Set to `1.0` to require strict conservation across every interface; set to `0.5` to surface "majority-present" residues and pairs rather than conserved ones.
 
-### Tooltip / inline help — cluster distance cut
+### Tooltip / inline help: cluster distance cut
 
 > The cut on `1 − Jaccard` distance that defines flat cluster assignments. Default `0.5` is a reasonable starting point for the working example. Read the dendrogram and set the cut where the visible structure of the data sits.
 
-### Warning — residues dropped for missing UniProt mapping
+### Warning: residues dropped for missing UniProt mapping
 
 > Dropped {n} residues at interface {pdb_id}/{assembly_id}/{interface_id} for missing UniProt mapping. These residues are not included in cross-structure comparison. Total drops are recorded in the structure table.
 
-### Warning — partner-order inconsistency
+### Warning: partner-order inconsistency
 
 > Partner ordering inconsistent across interfaces: `(unp_accession_1, unp_accession_2) = ({a}, {b})` for the majority, but `({b}, {a})` for {pdb_id}/{assembly_id}/{interface_id}. Reversing role assignment for the inconsistent entries before aggregation.
 
-### Warning — ligand filter applied
+### Warning: ligand filter applied
 
 > Filtered out {n} bound molecules across {m} PDB entries: {dropped_chem_comp_ids}. Adjust `ligand_blocklist` or `drop_carbohydrate_polymers` in `Config` to retain.
 
-### Empty-state — no mutations at any interface
+### Empty-state: no mutations at any interface
 
-> No engineered mutations found at any interface for this complex. The mutation overlap table is empty; the structure table mutation count is zero everywhere. This is a valid result, not an error — it means none of the deposited structures carry an engineered mutation that lands on the interface (mutations elsewhere in the protein are dropped at the join step).
+> No engineered mutations found at any interface for this complex. The mutation overlap table is empty; the structure table mutation count is zero everywhere. This is a valid result rather than an error: none of the deposited structures carry an engineered mutation that lands on the interface (mutations elsewhere in the protein are dropped at the join step).
 
-### Empty-state — no ligands at any interface
+### Empty-state: no ligands at any interface
 
 > No ligand contacts at any interface for this complex (after applying `ligand_blocklist` and the carbohydrate-polymer filter). The ligand overlap table is empty.
 
-### Cluster report — annotation correlate present
+### Cluster report: annotation correlate present
 
 > Cluster {cluster_id} ({n} interfaces): all members carry {feature}. {member_pdb_ids}.
 
-### Cluster report — no annotation correlate
+### Cluster report: no annotation correlate
 
 > Cluster {cluster_id} ({n} interfaces): no distinguishing mutation, modification, or ligand identified for this cluster's members. The cluster may reflect conformational state, crystal form, construct boundaries, refinement protocol, or an artefact of the similarity metric. Inspect the member structures directly to interpret further.
 
-### Error — complex did not resolve
+### Error: complex did not resolve
 
 > Complex ID `{complex_id}` did not resolve. Check the identifier is a valid PDBe-KB complex ID (format `PDB-CPX-NNNNNN`).
 
-### Error — non-dimer complex
+### Error: non-dimer complex
 
-> Complex `{complex_id}` has {n} components. v1 supports dimer complexes only — this is an upstream limitation of the `interface_interactions` API, not a design choice. Higher-order oligomers are a planned v2 extension.
+> `{identifier}` resolves to complex `{complex_id}`, which has {n} chains ({oligomeric_state}). This workflow supports dimers only, with both components mapped to UniProt: with more than two components the correspondence between chains cannot be determined, so the interfaces are not comparable across structures.
 
-### Error — no interfaces returned
+### Error: no interfaces returned
 
 > No interfaces returned for `{complex_id}`. The complex ID is valid but the interface API has no contacts on file. This is unexpected for a deposited dimer complex; report the case if it persists across reruns.
 
@@ -878,7 +934,7 @@ The notebook embeds the following copy verbatim. All text is for a technically l
 
 ### Data persistence
 
-v1 persists nothing to disk by default. All artefacts live in the notebook's output cells and the in-memory dataframes. A user wanting to export takes a manual step: `df.to_csv(...)`, `plt.savefig(...)`. This is intentional — v1 is exploratory; persistence patterns are deferred until they have been used.
+v1 persists nothing to disk by default. All artefacts live in the notebook's output cells and the in-memory dataframes. A user wanting to export takes a manual step: `df.to_csv(...)`, `plt.savefig(...)`. This is intentional, v1 is exploratory; persistence patterns are deferred until they have been used.
 
 The structure table records `fetch_date` (ISO-8601 date) so that any exported CSV remains interpretable across PDBe releases.
 
@@ -925,7 +981,7 @@ None. v1 is a local notebook; no telemetry endpoint is wired up.
 
 ### Debugging
 
-Each module function is testable in isolation. The `InterfaceRecord` dataclass is the central debugging surface — a list of `InterfaceRecord` objects is sufficient to reproduce any downstream computation. Encourage users debugging unexpected output to inspect `records[i]` directly.
+Each module function is testable in isolation. The `InterfaceRecord` dataclass is the central debugging surface: a list of `InterfaceRecord` objects is sufficient to reproduce any downstream computation. Encourage users debugging unexpected output to inspect `records[i]` directly.
 
 ### Auditability
 
@@ -941,10 +997,10 @@ PDBe data is public. No user credentials are required. No personally identifiabl
 
 ### Upstream dependencies
 
-- **PDBe v2 API** — `complex/details`, `complex/interface_interactions`, `pdb/entry/mutated_AA_or_NA`, `pdb/entry/modified_AA_or_NA`, `pdb/bound_molecules/{pdb_id}`, `pdb/bound_ligand_interactions/{pdb_id}/{chain_id}/{author_residue_number}`. The workflow trusts these endpoints' schemas as documented.
-- **PDBe-KB complex catalogue** — the source of `PDB-CPX-NNNNNN` identifiers. Users obtain complex IDs by browsing PDBe-KB; the notebook does not include a search interface.
-- **PISA pipeline (upstream of `interface_interactions`)** — the source of the contact-type vocabulary (`hydrogen_bond`, `salt_bridge`, etc.) and the interface-level metrics.
-- **SIFTS (upstream of the inline UniProt mappings)** — the source of the residue-level UniProt mappings inlined in the interface response. The workflow relies on SIFTS providing a one-to-one mapping per `(pdb_id, auth_asym_id, auth_seq_id, ins_code)`.
+- **PDBe v2 API**: `complex/details`, `complex/interface_interactions`, `pdb/entry/mutated_AA_or_NA`, `pdb/entry/modified_AA_or_NA`, `pdb/bound_molecules/{pdb_id}`, `pdb/bound_ligand_interactions/{pdb_id}/{chain_id}/{author_residue_number}`. The workflow trusts these endpoints' schemas as documented.
+- **PDBe-KB complex catalogue**: the source of `PDB-CPX-NNNNNN` identifiers. Users obtain complex IDs by browsing PDBe-KB; the notebook does not include a search interface.
+- **PISA pipeline (upstream of `interface_interactions`)**: the source of the contact-type vocabulary (`hydrogen_bond`, `salt_bridge`, etc.) and the interface-level metrics.
+- **SIFTS (upstream of the inline UniProt mappings)**: the source of the residue-level UniProt mappings inlined in the interface response. The workflow relies on SIFTS providing a one-to-one mapping per `(pdb_id, auth_asym_id, auth_seq_id, ins_code)`.
 
 ### Downstream consumers
 
@@ -1044,7 +1100,7 @@ Not user-interactive in the sub-second sense; the notebook is exploratory. Per-c
 
 ## Out of Scope for v1
 
-- **Higher-order oligomers (trimers, tetramers, larger assemblies).** Rationale: the `interface_interactions` API currently returns data for dimers only. A v2 extension when the API supports them.
+- **Higher-order oligomers (trimers, tetramers, larger assemblies).** Rationale: two independent blockers. The `interface_interactions` API returns data for dimers only, and chain correspondence cannot be determined where an instance has more than two components, so there is no basis on which to compare their interfaces across structures. API support alone would not make this workable; the correspondence problem would have to be solved first.
 - **Multiple complexes per notebook run.** Rationale: v1 establishes the per-complex workflow; cross-complex aggregation is a v2 extension on the same axis.
 - **Typed ligand contacts feeding into similarity.** Rationale: changes the conceptual unit from "protein–protein interface" to "extended interaction surface." Useful for drug discovery but a v2 design choice.
 - **Statistical enrichment tests for cluster–annotation correspondence.** Rationale: not meaningful at v1 sample sizes (~10–30 interfaces per complex). Becomes useful above ~30, which v1 does not assume.
@@ -1070,7 +1126,7 @@ When run on the working example (`PDB-CPX-130306`), the notebook produces:
 - A non-empty ligand overlap. KRAS structures carry GNP (a GTP analogue) at the GTP-binding pocket; whether GNP also reaches the RAF1 interface depends on the entry, but some entries do.
 - No unhandled exceptions.
 
-**Note on mutation overlap.** An earlier version of this spec listed "non-empty mutation overlap" as an acceptance check on the assumption that KRAS oncogenic mutations would land at the interface. They do not — G12, G13, Q61 and C118 sit at the GTP-binding site and the activation loop, not at switch I (which is where RAF1 binds). The workflow correctly returns zero at-interface mutations for this complex. For a complex where interface mutations *are* expected, run on `PDB-CPX-140195` (ACE2–Spike) — RBD variant residues like S477N, N501Y, Q493R, Q498R land at the interface and are surfaced as enriched signatures in the cluster interpretation report.
+**Note on mutation overlap.** An earlier version of this spec listed "non-empty mutation overlap" as an acceptance check on the assumption that KRAS oncogenic mutations would land at the interface. They do not; G12, G13, Q61 and C118 sit at the GTP-binding site and the activation loop, not at switch I (which is where RAF1 binds). The workflow correctly returns zero at-interface mutations for this complex. For a complex where interface mutations *are* expected, run on `PDB-CPX-140195` (ACE2–Spike); RBD variant residues like S477N, N501Y, Q493R, Q498R land at the interface and are surfaced as enriched signatures in the cluster interpretation report.
 
 If the workflow runs end-to-end on `PDB-CPX-130306` and produces these outputs, v1 is functionally complete. Quality of the analysis (whether the clusters are interpretable) is a separate question and is the user's call.
 

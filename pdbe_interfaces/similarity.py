@@ -93,3 +93,17 @@ def cluster_interfaces(
     Z = linkage(condensed, method=method)
     assignment = fcluster(Z, t=distance_cut, criterion="distance")
     return ClusterResult(linkage=Z, flat_assignment=assignment, distance_cut=distance_cut)
+
+
+def describe_typed_untyped_divergence(
+    sim_typed: np.ndarray, sim_untyped: np.ndarray,
+) -> str:
+    """Compare typed and untyped Jaccard matrices.
+
+    Substantial divergence, above roughly 0.2, indicates that bond-type
+    assignment contributes more to the clustering than the residue-pair
+    topology does. Bond types are geometry-derived and resolution-dependent,
+    so in that situation the clustering is more sensitive to data quality.
+    """
+    diff = float(np.abs(sim_typed - sim_untyped).max())
+    return f"Maximum absolute difference between typed and untyped Jaccard: {diff:.3f}"
