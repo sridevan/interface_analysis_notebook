@@ -1,12 +1,18 @@
 # Aggregated Interface Interaction Analysis in Dimers
 
-Jupyter notebook implementation of the Aggregated Interface Interaction Analysis workflow.
+Jupyter notebook implementation of the Aggregated Interface Interaction Analysis workflow,
+for **dimeric complexes only**.
 
-Compares protein–protein interfaces across all deposited structures of a single complex by
-interaction-pair similarity, then overlays mutations, modifications, and ligands. The complex
-is named by a PDB entry id or a PDBe-KB complex id. Cluster representatives are rendered in
-Mol*, and per-residue conservation plus residue–residue contact frequencies are exported as
-JSON for downstream visualisation (e.g. AFDB-style Mol* colouring).
+Compares the protein–protein interface across all deposited structures of a single dimeric
+complex by interaction-pair similarity, then overlays mutations, modifications, and ligands.
+Cluster representatives are rendered in Mol*, and per-residue conservation plus
+residue–residue contact frequencies are exported as JSON for downstream visualisation
+(e.g. AFDB-style Mol* colouring).
+
+The complex is named by a PDB entry id or a PDBe-KB complex id, and both components must map
+to UniProt. Complexes with more than two components are rejected, and assembly instances
+carrying an additional bound macromolecule are excluded: chain correspondence cannot be
+determined beyond two components, so those interfaces are not comparable across structures.
 
 The notebook holds the narrative, the configuration and the guidance for reading each
 output; all implementation lives in `pdbe_interfaces/`.
@@ -26,13 +32,8 @@ Tested on Python 3.11.
 
 ## Interpreting the output
 
-The notebook analyses **dimeric complexes only, with both components mapped to UniProt**.
-Where an instance has more than two components the correspondence between chains cannot be
-determined, so complexes with more than two components are rejected and assembly instances
-carrying an additional bound macromolecule are excluded (this is not configurable).
-
-Further scope and limitations are documented in the notebook, as guidance at the phase each
-applies to. In short: the contact and annotation columns are counts rather than enrichment
+Scope and limitations are documented in the notebook, as guidance at the phase each applies
+to. In short: the contact and annotation columns are counts rather than enrichment
 statistics, since clusters are built from the same contacts those columns list; deposited
 structures are not independent observations, so frequencies describe the deposition set
 analysed; and the interaction types available at residue-pair level should be checked per
