@@ -7,3 +7,6 @@ venv/
 .env
 .DS_Store
 interface_frequencies/
+
+# Internal notes: infrastructure detail, not for the public repository
+internal/

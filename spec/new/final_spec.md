@@ -1136,90 +1136,17 @@ If the workflow runs end-to-end on `PDB-CPX-130306` and produces these outputs, 
 
 ---
 
-## Upstream Recommendation: Reclassify Disulfides Out of `other`
+## Known Limitation: Disulfides Are Not Available
 
-**Observation.** PISA's per-assembly analysis (`https://ftp.ebi.ac.uk/pub/databases/msd/pdb-assemblies-analysis/split/<xx>/<entry>_assembly<n>_interfaces.json`) reports five bond categories: `hydrogen_bonds`, `salt_bridges`, `disulfide_bonds`, `covalent_bonds` and `other_bonds`. In the insulin complex `PDB-CPX-130512`, all **163 of 163** interfaces contain exactly two S-S contacts at 2.02 to 2.05 A, `CYS A7-B7` and `CYS A20-B19`, and in every one of them those bonds are filed under `other_bonds` while `number_disulfide_bonds` reads 0.
+PISA's per-assembly analysis (`https://ftp.ebi.ac.uk/pub/databases/msd/pdb-assemblies-analysis/`) reports five bond categories: `hydrogen_bonds`, `salt_bridges`, `disulfide_bonds`, `covalent_bonds` and `other_bonds`. The `interface_interactions` endpoint exposes the first two at residue-pair level.
 
-This is not specific to insulin. Across 357 interfaces from 150 randomly sampled assemblies, `other_bonds` is populated in 100% of interfaces, `hydrogen_bonds` in 81%, `salt_bridges` in 45%, and `disulfide_bonds` and `covalent_bonds` in **0%**. The two categories appear never to be populated, so anything the classifier does not recognise as a hydrogen bond or a salt bridge falls through to `other`, including covalent links.
+In the insulin complex `PDB-CPX-130512`, all 163 interfaces carry two interchain disulfides, `CYS A7-B7` and `CYS A20-B19`, present in the PISA data at 2.02 to 2.05 A but filed under `other_bonds` with `number_disulfide_bonds` reading 0. Across 357 interfaces from 150 randomly sampled assemblies, `other_bonds` is populated in 100% of interfaces while `disulfide_bonds` and `covalent_bonds` are populated in none.
 
-**Consequence for this workflow.** `INTERFACE_INTERACTIONS_QUERY` excludes `bond_type = 'other'`, correctly, since that category is dominated by van der Waals contacts and exposing it would multiply records by roughly 14x. The side effect is that disulfides are removed with it, so a disulfide-linked interface is indistinguishable from a purely non-covalent one. For insulin, the strongest physical feature of the A/B interface contributes nothing to the similarity fingerprint.
+**Consequence for this workflow.** A disulfide-linked interface is indistinguishable from a purely non-covalent one, and covalent links do not enter the fingerprint. For insulin, the strongest physical feature of the A/B interface contributes nothing to the similarity comparison. This is stated as guidance in the Phase 2 markdown of the notebook.
 
-**Where the fix belongs.** A database-wide check confirms the classification is lost before `interface_residue` is populated, so nothing at the query or API layer can recover it. Grouping every Cys and Sec contact in the table by residue, atom and bond type returns 113 rows over 307,911 contacts, and only two `bond_type` values occur: `other` (98.0%) and `hydrogen_bond` (2.0%). No row is annotated as a disulfide anywhere in the table.
+**If disulfides become available**, no change is required here. `bond_type` is read verbatim from the response (`representation._build_one`) and flows through the interaction-pair sets, clustering, cluster report, rewiring table and JSON export without an allowlist anywhere; this was verified by injecting a synthetic value and confirming it appears in every downstream output. Only the Phase 2 guidance would need updating.
 
-The same query settles two open questions. `CSE`, the legacy selenocysteine component id, was included in the filter and returns **no rows**, so the rule needs only `CYS` and `SEC`. Selenocysteine itself **is** present, though rare: 30 `SEC-SEC` contacts and 4 `CYS-SEC`, out of 307,911.
-
-The complete set of bonding-capable atom pairs is three rows:
-
-| pair | bond_type | contacts | chemistry |
-|---|---|---|---|
-| `CYS.SG - CYS.SG` | other | 51,500 | disulfide |
-| `SEC.SE - SEC.SE` | other | 5 | diselenide |
-| `CYS.SG - SEC.SE` | other | 4 | selenenylsulfide |
-
-Everything else in those 307,911 contacts is proximity noise around interface cysteines: `CB-SG` (44,338), `SG-CB` (41,301), `CB-CB` (24,890), `CA-SG` (23,667) and similar. A further 3,331 contacts are already correctly typed as `hydrogen_bond`, all `N-SG` or `H-SG`, where the cysteine sulfur acts as a hydrogen-bond partner; these must not be touched.
-
-Note that side 1 and side 2 are not normalised: `CYS.SG-SEC.SE` occurs while `SEC.SE-CYS.SG` does not, and the SEC backbone rows appear in both orderings. Any predicate must cover both directions.
-
-**Recommendation.** Reclassify S-S contacts out of `other` when `interface_residue` is populated, so they arrive as a distinct `bond_type` ahead of the `!= 'other'` filter. In the insulin complex this recovers 326 bonds and costs nothing in payload, since the reclassified contacts number two per interface rather than the 80 to 270 that exposing all of `other` would add.
-
-**Classifying a disulfide.** In order of preference:
-
-1. **Take the deposited connectivity.** mmCIF `struct_conn` with `conn_type_id = 'disulf'`, or the legacy `SSBOND` records, is wwPDB-annotated and independent of refinement quality. Where it is available at load time it should be used directly, with geometry as a fallback for entries lacking the annotation.
-2. **Otherwise apply the geometric rule**, which the sampled data supports tightly: both residues `CYS`, both atoms `SG`, distance at or below 2.5 A. All 117 SG-SG contacts in the sample were CYS-CYS, and no other sulfur atom pair approached bonding distance; the next most common sulfur contacts are SG-CB, CB-SD and N-SD, all non-bonding.
-
-**Selenocysteine must be included.** `SEC` (atom `SE`) forms diselenide and selenenylsulfide bonds, and the database contains 9 such contacts, so a rule keyed strictly on `CYS`/`SG` would miss the one chemistry the literature specifically documents for Sec. Bond lengths run longer than S-S, roughly 2.2 to 2.4 A; with only 9 rows the threshold is best set by inspecting them directly. **Oxidised cysteines** (`CSO`, `CSD`, `OCS`) retain an SG but cannot form a disulfide, and are excluded by requiring residue name `CYS`. `CSE` does not occur in the table and needs no handling.
-
-**Stopgap: a database update.** Pending a loader change, the rows can be relabelled directly. Verify the distance distribution first, since the 95:5 bonded-to-unbonded split below comes from a 300-assembly sample rather than the full table:
-
-```sql
-SELECT ROUND(distance, 1) AS d, COUNT(*)
-FROM interface_residue
-WHERE atom_1 = 'SG' AND atom_2 = 'SG'
-  AND chem_comp_id_1 = 'CYS' AND chem_comp_id_2 = 'CYS'
-GROUP BY ROUND(distance, 1) ORDER BY d;
-```
-
-A clean gap between the bonded peak near 2.0 to 2.1 A and the unbonded cluster at 3.5 to 4.0 A confirms the cutoff. Then, inside a transaction and after running the same predicate as a `SELECT COUNT(*)`:
-
-```sql
-UPDATE interface_residue
-SET bond_type = 'disulfide'
-WHERE bond_type = 'other'
-  AND distance <= 2.5
-  AND (
-       (chem_comp_id_1 = 'CYS' AND atom_1 = 'SG' AND chem_comp_id_2 = 'CYS' AND atom_2 = 'SG')
-    OR (chem_comp_id_1 = 'SEC' AND atom_1 = 'SE' AND chem_comp_id_2 = 'SEC' AND atom_2 = 'SE')
-    OR (chem_comp_id_1 = 'CYS' AND atom_1 = 'SG' AND chem_comp_id_2 = 'SEC' AND atom_2 = 'SE')
-    OR (chem_comp_id_1 = 'SEC' AND atom_1 = 'SE' AND chem_comp_id_2 = 'CYS' AND atom_2 = 'SG')
-  );
-```
-
-Expect somewhat under 51,509 rows, the difference being unbonded cysteine pairs at van der Waals distance.
-
-Four caveats attach to running it as a patch rather than fixing the loader:
-
-1. **It regresses on the next load.** Unless the ingest that populates `interface_residue` is changed, the next refresh writes `other` again. The patch is a stopgap; the loader change is the fix.
-2. **`interface_info.number_disulfide_bonds` must be updated in the same transaction.** Otherwise the inconsistency is recreated in reverse: relabelled records at an interface whose summary count still reads 0.
-3. **The API contract changes.** `bond_type != 'other'` will begin admitting a new value, so consumers with a hardcoded enum of `hydrogen_bond` and `salt_bridge` may break or silently drop it. This workflow passes any value through unchanged, verified by injection, but other consumers should be warned before it lands.
-4. **The value becomes public API surface.** `disulfide` against `disulfide_bond` against `covalent` is awkward to rename later; matching PISA's own category name is the least surprising choice.
-
-Keeping a record of the changed rows, a backup table or a provenance flag, allows the patch to be reverted or re-derived when the loader fix lands.
-
-**The rule needs the bond distance, not only the atom names.** Across 300 randomly sampled assemblies, 117 SG-SG contacts appear in `other_bonds`: 111 (94.9%) at 2.01 to 2.5 A, and 6 (5.1%) at 3.75 to 3.91 A, which are van der Waals contacts between unbonded cysteines. Selecting on atom names alone would mislabel those 6. The distribution is cleanly bimodal with nothing between 2.5 and 3.75 A, so any cutoff in that gap separates them: both atoms named `SG` and distance at or below roughly 2.5 A. If `interface_residue` carries no distance column, the classification must be applied upstream of it, where PISA's `bond_distances` is still available.
-
-This is preferable to relaxing the `other` filter for three reasons. It fixes a defect rather than shifting the problem to consumers; it keeps the response size unchanged; and it produces a chemically meaningful `bond_type` value rather than a bucket that mixes covalent bonds with transient contacts.
-
-**No change is required in this workflow if it lands.** `bond_type` is read verbatim from the response (`representation._build_one`) and flows through the interaction-pair sets, clustering, cluster report, rewiring table and JSON export without an allowlist anywhere. This was verified by injecting a synthetic `disulfide` value into a response and confirming it appears in every downstream output. The Phase 2 guidance on checking the returned vocabulary would then be updated.
-
-**Covalent bonds are a different problem and should not be recovered geometrically.** The `covalent_bonds` category is likewise never populated (0 of 357 interfaces sampled; confirmed against the database, which holds no covalent annotations either), so isopeptide bonds, glycosylation links and similar covalent connections also fall into `other`. Unlike disulfides they have no atom-pair signature, and distance alone does not identify them.
-
-The sample shows why. Of 6,272 heavy-atom contacts at or below 2.5 A in `other_bonds`, one entry, `8hi2`, a 660-interface assembly, contributes 85%: the same few contacts repeated across a large symmetric assembly. The most common pairs among them are `ARG.NE-PRO.C` at 2.0 A and `ASP.OD2-ASN.CB` at 1.8 A, which are not plausible covalent bonds. Whether they are clashes, alternate-conformation overlaps or an artefact of assembly generation, they would dominate any distance-based covalent rule. By contrast the 111 bonded SG-SG contacts are spread across nine unrelated entries, which is what makes the disulfide rule trustworthy.
-
-**Recommendation for covalent bonds: take them from the deposited connectivity, not from geometry.** mmCIF `struct_conn` with `conn_type_id` in (`covale`, `metalc`, `disulf`) is wwPDB-annotated, covers glycosylation, isopeptide bonds and metal coordination, and requires no thresholds. It also yields disulfides directly through `disulf`, which would make the geometric rule above a fallback rather than the primary method.
-
-**Related, lower priority.** Consider exposing `other` behind an opt-in parameter, default off, and surfacing `number_other_bonds` at interface level regardless. 2.7% of interfaces have no polar contacts at all and are currently described as empty, and a further 17.3% have only one or two, which is too few to compare across structures. Surfacing the count would at least let a consumer distinguish a genuinely thin interface from a filtered one.
-
-**Points to verify before acting on any of this.** The findings above are inferred from the FTP JSON and the API response, not from the PISA or loader source: (a) whether `disulfide_bonds` and `covalent_bonds` are genuinely never written, or written only under conditions absent from the sample; (b) whether `interface_residue` carries a bond distance, which determines whether the disulfide rule can be applied in the loader or must move upstream; (c) what the sub-2.5 A heavy-atom contacts in `8hi2` actually represent, since they may indicate a separate problem in assembly generation; and (d) whether `struct_conn` is reachable at the point where `interface_residue` is populated.
+Investigation detail, including the classification rules and the remediation route, is held internally rather than in this repository.
 
 ## Resolved During Implementation
 
