@@ -22,6 +22,7 @@ static output.
 
 from __future__ import annotations
 
+import os
 from collections import Counter
 
 import ipywidgets as widgets
@@ -37,6 +38,7 @@ def residue_pair_explorer(
     cluster_result: ClusterResult,
     partner_map: dict[tuple[str, int], str] | None = None,
     top_n: int = 15,
+    interactive: bool | None = None,
 ) -> None:
     """Display the residue-pair table and heatmap with a cluster filter.
 
@@ -44,7 +46,22 @@ def residue_pair_explorer(
     state; the slider caps the table rows and the heatmap dimension on each
     side. Selecting one state shows the residue-pair composition of that state
     alone.
+
+    `interactive=False` renders the whole-dataset view once, without widgets.
+    Use it for headless execution: this widget layout hangs `nbconvert
+    --execute`, where the kernel goes idle and the client waits for a reply
+    that never arrives. Left as None, the mode is read from the
+    PDBE_INTERFACES_STATIC environment variable, so a headless run can be
+    driven without editing the notebook:
+
+        PDBE_INTERFACES_STATIC=1 jupyter nbconvert --execute notebook.ipynb
     """
+    if interactive is None:
+        interactive = not os.environ.get("PDBE_INTERFACES_STATIC")
+    if not interactive:
+        _render_static(records, partner_map, top_n)
+        return
+
     assignment = cluster_result.flat_assignment
     sizes = Counter(assignment.tolist())
 
@@ -101,3 +118,20 @@ def residue_pair_explorer(
         widgets.HBox([table_out, plot_out]),
     ]))
     _render()
+
+
+def _render_static(
+    records: list[InterfaceRecord],
+    partner_map: dict[tuple[str, int], str] | None,
+    top_n: int,
+) -> None:
+    """Whole-dataset view with no widgets, for headless execution."""
+    if not records:
+        print("No interfaces to summarise.")
+        return
+    scope = f"all {len(records)} interfaces"
+    freq = outputs.interface_frequency_summary(records, partner_map=partner_map)
+    print(f"Top {top_n} residue pairs ({scope}); widgets disabled, showing the "
+          f"whole dataset. Set PDBE_INTERFACES_STATIC=0 for the interactive view.")
+    display(freq["pairs"][["contact", "n_interfaces", "fraction"]].head(top_n))
+    plots.pair_frequency_heatmap(freq, top_n, scope)

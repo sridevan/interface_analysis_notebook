@@ -30,6 +30,16 @@ jupyter notebook notebook.ipynb
 
 Tested on Python 3.11.
 
+For headless execution (CI, papermill, `nbconvert --execute`), set `PDBE_INTERFACES_STATIC=1`:
+
+```bash
+PDBE_INTERFACES_STATIC=1 jupyter nbconvert --to notebook --execute notebook.ipynb
+```
+
+The Phase 5a explorer then renders the whole-dataset view once instead of building widgets.
+Its widget layout hangs `nbconvert --execute`: the kernel goes idle while the client waits
+for a reply that never arrives. The variable has no effect on interactive use.
+
 ## Interpreting the output
 
 Scope and limitations are documented in the notebook, as guidance at the phase each applies

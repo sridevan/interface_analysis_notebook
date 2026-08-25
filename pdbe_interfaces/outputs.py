@@ -1696,3 +1696,35 @@ def rewiring_table(
         f"sorted by absolute fraction difference, top {top_n}."
     )
     return table, message
+
+
+def describe_conservation(records: list[InterfaceRecord], threshold: float) -> str:
+    """Conserved residue and pair counts, with context when the count is zero.
+
+    A zero at the default threshold is a real result rather than a failure, so
+    report the highest frequency actually observed and what it would take to
+    reach it.
+    """
+    n = len(records)
+    res = conserved_residues(records, threshold=threshold)
+    pairs = conserved_interaction_pairs(records, threshold=threshold)
+    lines = [
+        f"Conserved residues at threshold {threshold}: {len(res)}",
+        f"Conserved interaction pairs at threshold {threshold}: {len(pairs)}",
+    ]
+    if n and not res:
+        counts: Counter = Counter()
+        for r in records:
+            seen = set()
+            for a, b, _ in r.uniprot_pairs:
+                seen.add(a)
+                seen.add(b)
+            counts.update(seen)
+        if counts:
+            best = max(counts.values())
+            lines.append(
+                f"  No residue reaches the {threshold} cutoff across {n} interfaces. "
+                f"The most frequent occurs in {best}/{n} ({best / n:.0%}), so setting "
+                f"conservation_threshold to {best / n:.2f} or lower would return results."
+            )
+    return "\n".join(lines)
