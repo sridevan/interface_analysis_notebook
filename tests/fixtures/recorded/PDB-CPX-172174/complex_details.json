@@ -1,0 +1,223 @@
+{
+ "body": {
+  "PDB-CPX-172174": [
+   {
+    "assemblies": [
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "11gl",
+      "preferred_assembly": true,
+      "resolution": 1.98,
+      "symmetry": {
+       "symbol": "c2",
+       "type": "Cyclic"
+      },
+      "title": "Crystal structure of mSTING in complex with 2'3'-cUMP-AMP"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "11gm",
+      "preferred_assembly": false,
+      "resolution": 1.84,
+      "symmetry": {
+       "symbol": "c2",
+       "type": "Cyclic"
+      },
+      "title": "Crystal structure of mSTING in complex with 3'3'-cUMP-AMP"
+     },
+     {
+      "assembly_id": 2,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "11gm",
+      "preferred_assembly": true,
+      "resolution": 1.84,
+      "symmetry": {
+       "symbol": "c2",
+       "type": "Cyclic"
+      },
+      "title": "Crystal structure of mSTING in complex with 3'3'-cUMP-AMP"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "11gn",
+      "preferred_assembly": false,
+      "resolution": 1.29,
+      "symmetry": {
+       "symbol": "c2",
+       "type": "Cyclic"
+      },
+      "title": "Crystal structure of mSTING in complex with 3'3'-di-AMP"
+     },
+     {
+      "assembly_id": 2,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "11gn",
+      "preferred_assembly": true,
+      "resolution": 1.29,
+      "symmetry": {
+       "symbol": "c2",
+       "type": "Cyclic"
+      },
+      "title": "Crystal structure of mSTING in complex with 3'3'-di-AMP"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "4jc5",
+      "preferred_assembly": true,
+      "resolution": 2.75,
+      "symmetry": {
+       "symbol": "c2",
+       "type": "Cyclic"
+      },
+      "title": "Immune activator bound to receptor"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "4kby",
+      "preferred_assembly": true,
+      "resolution": 2.36,
+      "symmetry": {
+       "symbol": "c2",
+       "type": "Cyclic"
+      },
+      "title": "mSTING/c-di-GMP"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "4kc0",
+      "preferred_assembly": true,
+      "resolution": 2.2,
+      "symmetry": {
+       "symbol": "c2",
+       "type": "Cyclic"
+      },
+      "title": "mSTING"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "4loj",
+      "preferred_assembly": true,
+      "resolution": 1.77,
+      "symmetry": {
+       "symbol": "c2",
+       "type": "Cyclic"
+      },
+      "title": "Crystal structure of mSting in complex with c[G(2',5')pA(3',5')p]"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "4lok",
+      "preferred_assembly": true,
+      "resolution": 2.07,
+      "symmetry": {
+       "symbol": "c2",
+       "type": "Cyclic"
+      },
+      "title": "Crystal structure of mSting in complex with c[G(3',5')pA(3',5')p]"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "4lol",
+      "preferred_assembly": true,
+      "resolution": 2.43,
+      "symmetry": {
+       "symbol": "c2",
+       "type": "Cyclic"
+      },
+      "title": "Crystal structure of mSting in complex with DMXAA"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "4yp1",
+      "preferred_assembly": true,
+      "resolution": 2.65,
+      "symmetry": {
+       "symbol": "c2",
+       "type": "Cyclic"
+      },
+      "title": "Misting with CDA"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "6xnn",
+      "preferred_assembly": true,
+      "resolution": 2.49,
+      "symmetry": {
+       "symbol": "c2",
+       "type": "Cyclic"
+      },
+      "title": "Crystal Structure of Mouse STING CTD complex with SR-717."
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "9ltf",
+      "preferred_assembly": true,
+      "resolution": 1.92,
+      "symmetry": {
+       "symbol": "c2",
+       "type": "Cyclic"
+      },
+      "title": "Crystal structure of mSTING-TTB"
+     }
+    ],
+    "complex_portal_id": "CPX-2128",
+    "name": "Sting complex",
+    "observed_experimental_methods_with_counts": {
+     "X-ray diffraction": 14
+    },
+    "oligomeric_state": "Homodimer",
+    "participants": [
+     {
+      "accession": "Q3TBT3",
+      "accession_type": "UniProt",
+      "gene_name": "Sting1",
+      "name": "Stimulator of interferon genes protein",
+      "stoichiometry": 2
+     }
+    ],
+    "polymer_composition": "Protein(2) complex",
+    "representative_structure": {
+     "assembly_id": "1",
+     "pdb_id": "4kc0"
+    },
+    "source_organism": "Mus musculus",
+    "subcomplexes": [],
+    "supercomplexes": [],
+    "symmetry": {
+     "symbol": "c2",
+     "type": "Cyclic"
+    },
+    "total_chains": 2,
+    "unique_bound_macromolecules": []
+   }
+  ]
+ },
+ "status": 200,
+ "url": "https://www.ebi.ac.uk/pdbe/api/v2/complex/details/PDB-CPX-172174?id_type=pdb_complex_id"
+}

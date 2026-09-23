@@ -1,0 +1,11 @@
+complex_id,instance_a,instance_b,n_pairs_a,n_pairs_b,direct,swapped,delta
+PDB-CPX-152431,3imp a3 i1,3imp a5 i1,1,1,0.0,1.0,1.0
+PDB-CPX-152431,3cyq a1 i1,3cyq a6 i1,1,1,0.0,1.0,1.0
+PDB-CPX-118634,5vlg a4 i1,5vlm a3 i1,1,1,0.0,1.0,1.0
+PDB-CPX-152431,3cyq a2 i1,3cyq a6 i1,1,1,0.0,1.0,1.0
+PDB-CPX-118634,5vlg a3 i1,5vlg a4 i1,1,1,0.0,1.0,1.0
+PDB-CPX-152431,3cyp a2 i1,3cyq a2 i1,2,1,0.0,0.5,0.5
+PDB-CPX-152431,3cyq a1 i1,3cyq a5 i1,1,2,0.0,0.5,0.5
+PDB-CPX-152431,3cyp a2 i1,3cyq a1 i1,2,1,0.0,0.5,0.5
+PDB-CPX-152431,3cyq a2 i1,3cyq a5 i1,1,2,0.0,0.5,0.5
+PDB-CPX-152431,3cyp a1 i1,3cyq a6 i1,2,1,0.0,0.5,0.5

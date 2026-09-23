@@ -1,0 +1,373 @@
+{
+ "11gl": {
+  "body": {
+   "11gl": [
+    {
+     "bm_id": "bm1",
+     "composition": {
+      "connections": [],
+      "ligands": [
+       {
+        "author_insertion_code": " ",
+        "author_residue_number": 401,
+        "chain_id": "A",
+        "chem_comp_id": "ZNT",
+        "entity": 2,
+        "molecule_type": "Bound"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "status": 200
+ },
+ "11gm": {
+  "body": {
+   "11gm": [
+    {
+     "bm_id": "bm1",
+     "composition": {
+      "connections": [],
+      "ligands": [
+       {
+        "author_insertion_code": " ",
+        "author_residue_number": 401,
+        "chain_id": "C",
+        "chem_comp_id": "A1AEP",
+        "entity": 2,
+        "molecule_type": "Bound"
+       }
+      ]
+     }
+    },
+    {
+     "bm_id": "bm2",
+     "composition": {
+      "connections": [],
+      "ligands": [
+       {
+        "author_insertion_code": " ",
+        "author_residue_number": 402,
+        "chain_id": "C",
+        "chem_comp_id": "EDO",
+        "entity": 3,
+        "molecule_type": "Bound"
+       }
+      ]
+     }
+    },
+    {
+     "bm_id": "bm3",
+     "composition": {
+      "connections": [],
+      "ligands": [
+       {
+        "author_insertion_code": " ",
+        "author_residue_number": 501,
+        "chain_id": "D",
+        "chem_comp_id": "EDO",
+        "entity": 3,
+        "molecule_type": "Bound"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "status": 200
+ },
+ "11gn": {
+  "body": {
+   "11gn": [
+    {
+     "bm_id": "bm1",
+     "composition": {
+      "connections": [],
+      "ligands": [
+       {
+        "author_insertion_code": " ",
+        "author_residue_number": 401,
+        "chain_id": "D",
+        "chem_comp_id": "EDO",
+        "entity": 3,
+        "molecule_type": "Bound"
+       }
+      ]
+     }
+    },
+    {
+     "bm_id": "bm2",
+     "composition": {
+      "connections": [],
+      "ligands": [
+       {
+        "author_insertion_code": " ",
+        "author_residue_number": 402,
+        "chain_id": "D",
+        "chem_comp_id": "2BA",
+        "entity": 2,
+        "molecule_type": "Bound"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "status": 200
+ },
+ "4jc5": {
+  "body": {
+   "4jc5": [
+    {
+     "bm_id": "bm1",
+     "composition": {
+      "connections": [],
+      "ligands": [
+       {
+        "author_insertion_code": " ",
+        "author_residue_number": 401,
+        "chain_id": "A",
+        "chem_comp_id": "1K5",
+        "entity": 2,
+        "molecule_type": "Bound"
+       }
+      ]
+     }
+    },
+    {
+     "bm_id": "bm2",
+     "composition": {
+      "connections": [],
+      "ligands": [
+       {
+        "author_insertion_code": " ",
+        "author_residue_number": 401,
+        "chain_id": "B",
+        "chem_comp_id": "1K5",
+        "entity": 2,
+        "molecule_type": "Bound"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "status": 200
+ },
+ "4kby": {
+  "body": {
+   "4kby": [
+    {
+     "bm_id": "bm1",
+     "composition": {
+      "connections": [],
+      "ligands": [
+       {
+        "author_insertion_code": " ",
+        "author_residue_number": 401,
+        "chain_id": "A",
+        "chem_comp_id": "C2E",
+        "entity": 2,
+        "molecule_type": "Bound"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "status": 200
+ },
+ "4kc0": {
+  "body": {
+   "message": "Requested endpoint does not contain any data"
+  },
+  "status": 404
+ },
+ "4loj": {
+  "body": {
+   "4loj": [
+    {
+     "bm_id": "bm1",
+     "composition": {
+      "connections": [],
+      "ligands": [
+       {
+        "author_insertion_code": " ",
+        "author_residue_number": 401,
+        "chain_id": "B",
+        "chem_comp_id": "1SY",
+        "entity": 2,
+        "molecule_type": "Bound"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "status": 200
+ },
+ "4lok": {
+  "body": {
+   "4lok": [
+    {
+     "bm_id": "bm1",
+     "composition": {
+      "connections": [],
+      "ligands": [
+       {
+        "author_insertion_code": " ",
+        "author_residue_number": 401,
+        "chain_id": "B",
+        "chem_comp_id": "1YD",
+        "entity": 2,
+        "molecule_type": "Bound"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "status": 200
+ },
+ "4lol": {
+  "body": {
+   "4lol": [
+    {
+     "bm_id": "bm1",
+     "composition": {
+      "connections": [],
+      "ligands": [
+       {
+        "author_insertion_code": " ",
+        "author_residue_number": 401,
+        "chain_id": "A",
+        "chem_comp_id": "1YE",
+        "entity": 2,
+        "molecule_type": "Bound"
+       }
+      ]
+     }
+    },
+    {
+     "bm_id": "bm2",
+     "composition": {
+      "connections": [],
+      "ligands": [
+       {
+        "author_insertion_code": " ",
+        "author_residue_number": 402,
+        "chain_id": "A",
+        "chem_comp_id": "1YE",
+        "entity": 2,
+        "molecule_type": "Bound"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "status": 200
+ },
+ "4yp1": {
+  "body": {
+   "4yp1": [
+    {
+     "bm_id": "bm1",
+     "composition": {
+      "connections": [],
+      "ligands": [
+       {
+        "author_insertion_code": " ",
+        "author_residue_number": 401,
+        "chain_id": "A",
+        "chem_comp_id": "2BA",
+        "entity": 2,
+        "molecule_type": "Bound"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "status": 200
+ },
+ "6xnn": {
+  "body": {
+   "6xnn": [
+    {
+     "bm_id": "bm1",
+     "composition": {
+      "connections": [],
+      "ligands": [
+       {
+        "author_insertion_code": " ",
+        "author_residue_number": 401,
+        "chain_id": "A",
+        "chem_comp_id": "V67",
+        "entity": 2,
+        "molecule_type": "Bound"
+       }
+      ]
+     }
+    },
+    {
+     "bm_id": "bm2",
+     "composition": {
+      "connections": [],
+      "ligands": [
+       {
+        "author_insertion_code": " ",
+        "author_residue_number": 401,
+        "chain_id": "B",
+        "chem_comp_id": "V67",
+        "entity": 2,
+        "molecule_type": "Bound"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "status": 200
+ },
+ "9ltf": {
+  "body": {
+   "9ltf": [
+    {
+     "bm_id": "bm1",
+     "composition": {
+      "connections": [],
+      "ligands": [
+       {
+        "author_insertion_code": " ",
+        "author_residue_number": 400,
+        "chain_id": "A",
+        "chem_comp_id": "A1ELY",
+        "entity": 2,
+        "molecule_type": "Bound"
+       }
+      ]
+     }
+    },
+    {
+     "bm_id": "bm2",
+     "composition": {
+      "connections": [],
+      "ligands": [
+       {
+        "author_insertion_code": " ",
+        "author_residue_number": 400,
+        "chain_id": "A_2",
+        "chem_comp_id": "A1ELY",
+        "entity": 2,
+        "molecule_type": "Bound"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "status": 200
+ }
+}

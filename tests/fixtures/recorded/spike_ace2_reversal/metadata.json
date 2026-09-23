@@ -1,0 +1,80 @@
+{
+ "canonical_instances": [
+  [
+   "6m0j",
+   "1",
+   1
+  ],
+  [
+   "7p19",
+   "1",
+   1
+  ],
+  [
+   "7rpv",
+   "1",
+   1
+  ]
+ ],
+ "captured_on": "2026-09-23",
+ "complex_id": "PDB-CPX-140195",
+ "frozen": true,
+ "n_interfaces_in_fixture": 5,
+ "n_interfaces_in_full_aggregation": 152,
+ "n_requests_recorded": 22,
+ "note": "Frozen regression fixture. Not refreshed automatically; re-capture only after deliberate review.",
+ "pdb_ids": [
+  "6m0j",
+  "7p19",
+  "7rpv"
+ ],
+ "reversed_instances": [
+  [
+   "7p19",
+   "2",
+   1
+  ],
+  [
+   "7rpv",
+   "4",
+   1
+  ]
+ ],
+ "selected_instances": [
+  {
+   "assembly_id": "1",
+   "interface_id": 1,
+   "pdb_id": "6m0j"
+  },
+  {
+   "assembly_id": "1",
+   "interface_id": 1,
+   "pdb_id": "7p19"
+  },
+  {
+   "assembly_id": "2",
+   "interface_id": 1,
+   "pdb_id": "7p19"
+  },
+  {
+   "assembly_id": "1",
+   "interface_id": 1,
+   "pdb_id": "7rpv"
+  },
+  {
+   "assembly_id": "4",
+   "interface_id": 1,
+   "pdb_id": "7rpv"
+  }
+ ],
+ "selection_rationale": {
+  "6m0j a1": "archetypal canonical Spike RBD-ACE2 structure; the named starting entry",
+  "7p19 a1": "canonical; carries the Spike Q498Y engineered mutation at the interface (author chain E)",
+  "7p19 a2": "REVERSED; same entry as 7p19 a1",
+  "7rpv a1": "canonical; same entry and same biological ACE2-RBD interface as the reversed 7rpv a4, a strong control for partner-order reversal while allowing genuine differences in detected contacts between assembly copies",
+  "7rpv a4": "REVERSED; carries the ACE2 Q325Y engineered mutation at the interface (author chain D)",
+  "majority": "3 canonical vs 2 reversed gives an unambiguous majority ordering for check_partner_consistency"
+ },
+ "starting_identifier": "6m0j",
+ "subset_note": "interface_interactions body filtered to the 5 selected instances; complex_details kept verbatim (all assemblies)"
+}

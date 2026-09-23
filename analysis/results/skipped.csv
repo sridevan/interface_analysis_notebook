@@ -1,0 +1,3 @@
+complex_id,reason
+PDB-CPX-145728,No interfaces remain after the assembly filters. Every assembly either carries a bound macromolecule beyond the two UniProt-mapped components or fails max_resolution=None.
+PDB-CPX-152235,only 1 comparable interface

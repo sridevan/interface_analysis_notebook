@@ -1,0 +1,2072 @@
+{
+ "body": {
+  "PDB-CPX-140195": [
+   {
+    "assemblies": [
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [
+       "antibody"
+      ],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "22hg",
+      "preferred_assembly": true,
+      "resolution": 2.61,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 BA.3.2.2(RE.2.2) RBD in complex with human ACE2 and monoclonal antibody S2H97"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "6lzg",
+      "preferred_assembly": true,
+      "resolution": 2.5,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Structure of novel coronavirus spike receptor-binding domain complexed with its receptor ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "6m0j",
+      "preferred_assembly": true,
+      "resolution": 2.45,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of SARS-CoV-2 spike receptor-binding domain bound with ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7a91",
+      "preferred_assembly": true,
+      "resolution": 3.6,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Dissociated S1 domain of SARS-CoV-2 Spike bound to ACE2 (Non-Uniform Refinement)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7a92",
+      "preferred_assembly": true,
+      "resolution": 4.2,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Dissociated S1 domain of SARS-CoV-2 Spike bound to ACE2 (Unmasked Refinement)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7bh9",
+      "preferred_assembly": true,
+      "resolution": 2.9,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 RBD-62 in complex with ACE2 peptidase domain"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7ddo",
+      "preferred_assembly": true,
+      "resolution": 3.4,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of human ACE2 and GD/1/2019 RBD"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7dmu",
+      "preferred_assembly": true,
+      "resolution": 3.2,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Structure of SARS-CoV-2 spike receptor-binding domain complexed with high affinity ACE2 mutant 3N39"
+     },
+     {
+      "assembly_id": 2,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7dmu",
+      "preferred_assembly": false,
+      "resolution": 3.2,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Structure of SARS-CoV-2 spike receptor-binding domain complexed with high affinity ACE2 mutant 3N39"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7dqa",
+      "preferred_assembly": true,
+      "resolution": 2.8,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of SARS-CoV2 RBD-ACE2 complex"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [
+       "antibody"
+      ],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7dx4",
+      "preferred_assembly": true,
+      "resolution": 3.6,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "The structure of FC08 Fab-hA.CE2-RBD complex"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7efp",
+      "preferred_assembly": true,
+      "resolution": 2.7,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Structure of SARS-CoV-2 spike receptor-binding domain in complex with high affinity ACE2 mutant (S19W,N330Y)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7efr",
+      "preferred_assembly": true,
+      "resolution": 2.49,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Structure of SARS-CoV-2 spike receptor-binding domain in complex with high affinity ACE2 mutant (T27W,N330Y)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7ekc",
+      "preferred_assembly": true,
+      "resolution": 2.8,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Structure of SARS-CoV-2 Gamma variant spike receptor-binding domain complexed with human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7eke",
+      "preferred_assembly": true,
+      "resolution": 2.7,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Structure of SARS-CoV-2 spike receptor-binding domain F486L mutation complexed with human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7ekf",
+      "preferred_assembly": true,
+      "resolution": 2.85,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Structure of SARS-CoV-2 Alpha variant spike receptor-binding domain complexed with human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7ekg",
+      "preferred_assembly": true,
+      "resolution": 2.63,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Structure of SARS-CoV-2 Beta variant spike receptor-binding domain complexed with human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7ekh",
+      "preferred_assembly": true,
+      "resolution": 2.4,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Structure of SARS-CoV-2 spike receptor-binding domain Y453F mutation complexed with human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7fdg",
+      "preferred_assembly": true,
+      "resolution": 3.69,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-COV-2 Spike RBDMACSp6 binding to hACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7fdh",
+      "preferred_assembly": true,
+      "resolution": 3.72,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-COV-2 Spike RBDMACSp25 binding to hACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7fdi",
+      "preferred_assembly": true,
+      "resolution": 3.12,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-COV-2 Spike RBDMACSp36 binding to hACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7kmb",
+      "preferred_assembly": true,
+      "resolution": 3.39,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "ACE2-RBD Focused Refinement Using Symmetry Expansion of Applied C3 for Triple ACE2-bound SARS-CoV-2 Trimer Spike at pH 7.4"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [
+       "antibody"
+      ],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7l0n",
+      "preferred_assembly": false,
+      "resolution": 2.78,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Circulating SARS-CoV-2 spike N439K variants maintain fitness while evading antibody-mediated immunity"
+     },
+     {
+      "assembly_id": 2,
+      "bound_macromolecules": [
+       "antibody"
+      ],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7l0n",
+      "preferred_assembly": true,
+      "resolution": 2.78,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Circulating SARS-CoV-2 spike N439K variants maintain fitness while evading antibody-mediated immunity"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7lo4",
+      "preferred_assembly": true,
+      "resolution": 2.46,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 spike receptor-binding domain with a G485R mutation in complex with human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7mjn",
+      "preferred_assembly": true,
+      "resolution": 3.29,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of the SARS-CoV-2 N501Y mutant spike protein ectodomain bound to human ACE2 ectodomain (focused refinement of RBD and ACE2)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7nxc",
+      "preferred_assembly": true,
+      "resolution": 3.14,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of the receptor binding domain of SARS-CoV-2 P.1 variant Spike glycoprotein in complex with ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7p19",
+      "preferred_assembly": true,
+      "resolution": 3.24,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of SARS-CoV-2 RBD Q498Y complexed with human ACE2"
+     },
+     {
+      "assembly_id": 2,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7p19",
+      "preferred_assembly": false,
+      "resolution": 3.24,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of SARS-CoV-2 RBD Q498Y complexed with human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7pki",
+      "preferred_assembly": true,
+      "resolution": 2.94,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of human ACE2 bound to the spike receptor-binding domain from a cave bat sarbecovirus closely related to SARS-CoV-2."
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7r0z",
+      "preferred_assembly": true,
+      "resolution": 3.5,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Dissociated S1 domain of Alpha Variant SARS-CoV-2 Spike bound to ACE2 (Non-Uniform Refinement)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7r10",
+      "preferred_assembly": true,
+      "resolution": 4.0,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Dissociated S1 domain of Alpha Variant SARS-CoV-2 Spike bound to ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7r11",
+      "preferred_assembly": true,
+      "resolution": 3.5,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Dissociated S1 domain of Beta Variant SARS-CoV-2 Spike bound to ACE2 (Non-Uniform Refinement)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7r12",
+      "preferred_assembly": true,
+      "resolution": 3.3,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Dissociated S1 domain of Mink Variant SARS-CoV-2 Spike bound to ACE2 (Non-Uniform Refinement)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7rpv",
+      "preferred_assembly": false,
+      "resolution": 3.54,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of affinity-enhancing and catalytically inactive ACE2 in complex with SARS-CoV-2 RBD"
+     },
+     {
+      "assembly_id": 2,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7rpv",
+      "preferred_assembly": false,
+      "resolution": 3.54,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of affinity-enhancing and catalytically inactive ACE2 in complex with SARS-CoV-2 RBD"
+     },
+     {
+      "assembly_id": 3,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7rpv",
+      "preferred_assembly": false,
+      "resolution": 3.54,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of affinity-enhancing and catalytically inactive ACE2 in complex with SARS-CoV-2 RBD"
+     },
+     {
+      "assembly_id": 4,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7rpv",
+      "preferred_assembly": true,
+      "resolution": 3.54,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of affinity-enhancing and catalytically inactive ACE2 in complex with SARS-CoV-2 RBD"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7sn0",
+      "preferred_assembly": true,
+      "resolution": 3.08,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of spike protein receptor binding domain of escape mutant SARS-CoV-2 from immunocompromised patient (d146*) in complex with human receptor ACE2"
+     },
+     {
+      "assembly_id": 2,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7sn0",
+      "preferred_assembly": false,
+      "resolution": 3.08,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of spike protein receptor binding domain of escape mutant SARS-CoV-2 from immunocompromised patient (d146*) in complex with human receptor ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7sxy",
+      "preferred_assembly": true,
+      "resolution": 2.79,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of the SARS-CoV-2 D614G mutant spike protein ectodomain bound to human ACE2 ectodomain (focused refinement of RBD and ACE2)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7sy0",
+      "preferred_assembly": true,
+      "resolution": 3.0,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of the SARS-CoV-2 D614G,L452R mutant spike protein ectodomain bound to human ACE2 ectodomain (focused refinement of RBD and ACE2)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7sy2",
+      "preferred_assembly": true,
+      "resolution": 3.11,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of the SARS-CoV-2 D614G,N501Y mutant spike protein ectodomain bound to human ACE2 ectodomain (focused refinement of RBD and ACE2)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7sy4",
+      "preferred_assembly": true,
+      "resolution": 3.35,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of the SARS-CoV-2 D614G,N501Y,E484K mutant spike protein ectodomain bound to human ACE2 ectodomain (focused refinement of RBD and ACE2)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7sy6",
+      "preferred_assembly": true,
+      "resolution": 2.81,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of the SARS-CoV-2 D614G,N501Y,E484K,K417N mutant spike protein ectodomain bound to human ACE2 ectodomain (focused refinement of RBD and ACE2)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7sy8",
+      "preferred_assembly": true,
+      "resolution": 3.14,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of the SARS-CoV-2 D614G,N501Y,E484K,K417T mutant spike protein ectodomain bound to human ACE2 ectodomain (focused refinement of RBD and ACE2)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7t9l",
+      "preferred_assembly": true,
+      "resolution": 2.66,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of SARS-CoV-2 Omicron spike protein in complex with human ACE2 (focused refinement of RBD and ACE2)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7tew",
+      "preferred_assembly": true,
+      "resolution": 3.52,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of SARS-CoV-2 Delta (B.1.617.2) spike protein in complex with human ACE2 (focused refinement of RBD and ACE2)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7tez",
+      "preferred_assembly": true,
+      "resolution": 3.27,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of SARS-CoV-2 Kappa (B.1.617.1) spike protein in complex with human ACE2 (focused refinement of RBD and ACE2)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [
+       "antibody"
+      ],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7tn0",
+      "preferred_assembly": true,
+      "resolution": 2.85,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 Omicron RBD in complex with human ACE2 and S304 Fab and S309 Fab"
+     },
+     {
+      "assembly_id": 2,
+      "bound_macromolecules": [
+       "antibody"
+      ],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7tn0",
+      "preferred_assembly": false,
+      "resolution": 2.85,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 Omicron RBD in complex with human ACE2 and S304 Fab and S309 Fab"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7ufk",
+      "preferred_assembly": false,
+      "resolution": 2.38,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of chimeric omicron RBD (strain BA.2) complexed with human ACE2"
+     },
+     {
+      "assembly_id": 2,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7ufk",
+      "preferred_assembly": true,
+      "resolution": 2.38,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of chimeric omicron RBD (strain BA.2) complexed with human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7ufl",
+      "preferred_assembly": false,
+      "resolution": 2.84,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of chimeric omicron RBD (strain BA.2) complexed with chimeric mouse ACE2"
+     },
+     {
+      "assembly_id": 2,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7ufl",
+      "preferred_assembly": true,
+      "resolution": 2.84,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of chimeric omicron RBD (strain BA.2) complexed with chimeric mouse ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7vx4",
+      "preferred_assembly": true,
+      "resolution": 3.9,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "ACE2-RBD in SARS-CoV-2 Beta variant S-ACE2 complex"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7vx5",
+      "preferred_assembly": true,
+      "resolution": 3.8,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "ACE2-RBD in SARS-CoV-2 Kappa variant S-ACE2 complex"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7w9i",
+      "preferred_assembly": true,
+      "resolution": 3.4,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 Delta S-RBD-ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7wbl",
+      "preferred_assembly": true,
+      "resolution": 3.4,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of human ACE2 complexed with SARS-CoV-2 Omicron RBD"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7wbp",
+      "preferred_assembly": true,
+      "resolution": 3.0,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of the receptor binding domain of SARS-CoV-2 Omicron variant spike glycoprotein in complex with its receptor human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7wbq",
+      "preferred_assembly": true,
+      "resolution": 3.34,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of the receptor binding domain of SARS-CoV-2 Delta variant spike glycoprotein in complex with its receptor human ACE2"
+     },
+     {
+      "assembly_id": 2,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7wbq",
+      "preferred_assembly": false,
+      "resolution": 3.34,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of the receptor binding domain of SARS-CoV-2 Delta variant spike glycoprotein in complex with its receptor human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7wgc",
+      "preferred_assembly": true,
+      "resolution": 3.6,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Neutral Omicron Spike Trimer in complex with ACE2."
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7whh",
+      "preferred_assembly": true,
+      "resolution": 2.6,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of SARS-CoV-2 omicron RBD and human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7wk6",
+      "preferred_assembly": true,
+      "resolution": 3.67,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of SARS-CoV-2 Omicron spike protein with human ACE2 (focus refinement on RBD-1/ACE2)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7wnm",
+      "preferred_assembly": true,
+      "resolution": 2.7,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Structure of SARS-CoV-2 Gamma variant receptor-binding domain complexed with high affinity human ACE2 mutant (T27F,R273Q)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7wpb",
+      "preferred_assembly": true,
+      "resolution": 2.79,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 Omicron Variant RBD complexed with ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7wsa",
+      "preferred_assembly": true,
+      "resolution": 3.0,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Structures of Omicron Spike complexes illuminate broad-spectrum neutralizing antibody development"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7xaz",
+      "preferred_assembly": false,
+      "resolution": 3.0,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of Omicron BA.1.1 RBD complexed with hACE2"
+     },
+     {
+      "assembly_id": 2,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7xaz",
+      "preferred_assembly": true,
+      "resolution": 3.0,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of Omicron BA.1.1 RBD complexed with hACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7xb0",
+      "preferred_assembly": true,
+      "resolution": 2.9,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of Omicron BA.2 RBD complexed with hACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7xb1",
+      "preferred_assembly": true,
+      "resolution": 2.7,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of Omicron BA.3 RBD complexed with hACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7xci",
+      "preferred_assembly": true,
+      "resolution": 3.2,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of SARS-CoV-2 Omicron RBD in complex with human ACE2 ectodomain (local refinement)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [
+       "antibody"
+      ],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7xcp",
+      "preferred_assembly": true,
+      "resolution": 3.05,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of Omicron RBD complexed with ACE2 and 304 Fab"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7xo9",
+      "preferred_assembly": true,
+      "resolution": 3.0,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 Omicron BA.2 Variant RBD complexed with human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7xwa",
+      "preferred_assembly": false,
+      "resolution": 3.36,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of the receptor binding domain of SARS-CoV-2 Omicron BA.4/5 variant spike protein in complex with its receptor ACE2"
+     },
+     {
+      "assembly_id": 2,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7xwa",
+      "preferred_assembly": true,
+      "resolution": 3.36,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of the receptor binding domain of SARS-CoV-2 Omicron BA.4/5 variant spike protein in complex with its receptor ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7ya1",
+      "preferred_assembly": true,
+      "resolution": 3.11,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of hACE2-bound SARS-CoV-2 Omicron spike protein with L371S, P373S and F375S mutations (local refinement)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [
+       "antibody"
+      ],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7ydi",
+      "preferred_assembly": true,
+      "resolution": 3.98,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 Spike (6P) in complex with 3 R1-32 Fabs and 3 ACE2, focused refinement of RBD region"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7yhw",
+      "preferred_assembly": true,
+      "resolution": 3.09,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of SARS-CoV-2 Omicron BA.2.12.1 RBD in complex with human ACE2 (local refinement)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7yj3",
+      "preferred_assembly": true,
+      "resolution": 3.14,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of SARS-CoV-2 Omicron BA.2 RBD in complex with human ACE2 (local refinement)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7yr4",
+      "preferred_assembly": true,
+      "resolution": 4.12,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 BA.2.75 S Trimer in complex with ACE2(interface)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "7zdq",
+      "preferred_assembly": true,
+      "resolution": 3.2,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of Human ACE2 bound to a high-affinity SARS CoV-2 mutant"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "7zf7",
+      "preferred_assembly": true,
+      "resolution": 3.46,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 Omicron BA.2 RBD in complex with ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "8asy",
+      "preferred_assembly": true,
+      "resolution": 2.85,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 Omicron BA.2.75 RBD in complex with ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8dlk",
+      "preferred_assembly": true,
+      "resolution": 3.04,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of SARS-CoV-2 Alpha (B.1.1.7) spike protein in complex with human ACE2 (focused refinement of RBD and ACE2)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8dln",
+      "preferred_assembly": true,
+      "resolution": 3.04,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of SARS-CoV-2 Beta (B.1.351) spike protein in complex with human ACE2 (focused refinement of RBD and ACE2)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8dlq",
+      "preferred_assembly": true,
+      "resolution": 2.77,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of SARS-CoV-2 Gamma (P.1) spike protein in complex with human ACE2 (focused refinement of RBD and ACE2)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8dlv",
+      "preferred_assembly": true,
+      "resolution": 3.11,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of SARS-CoV-2 Epsilon (B.1.429) spike protein in complex with human ACE2 (focused refinement of RBD and ACE2)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8dm6",
+      "preferred_assembly": true,
+      "resolution": 2.77,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of SARS-CoV-2 Omicron BA.2 spike protein in complex with human ACE2 (focused refinement of RBD and ACE2)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [
+       "antibody"
+      ],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8fxb",
+      "preferred_assembly": true,
+      "resolution": 3.1,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 XBB.1 spike RBD bound to the human ACE2 ectodomain and the S309 neutralizing antibody Fab fragment"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [
+       "antibody"
+      ],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8fxc",
+      "preferred_assembly": true,
+      "resolution": 3.2,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 BQ.1.1 spike RBD bound to the human ACE2 ectodomain and the S309 neutralizing antibody Fab fragment"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8h06",
+      "preferred_assembly": true,
+      "resolution": 2.66,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of SARS-CoV-2 Omicron BA.4/5 RBD in complex with human ACE2 (local refinement)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "8h5c",
+      "preferred_assembly": true,
+      "resolution": 2.9,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Structure of SARS-CoV-2 Omicron BA.2.75 RBD in complex with human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8hrk",
+      "preferred_assembly": true,
+      "resolution": 3.3,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 Delta S-RBD-ACE2 complex"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8hrl",
+      "preferred_assembly": true,
+      "resolution": 2.8,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 Delta S-RBD-ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8i9e",
+      "preferred_assembly": true,
+      "resolution": 3.2,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "S-RBD(Omicron BA.3) in complex with PD of ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8i9f",
+      "preferred_assembly": true,
+      "resolution": 2.9,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "S-RBD (Omicron BA.2.75) in complex with PD of ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8i9g",
+      "preferred_assembly": true,
+      "resolution": 3.2,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "S-RBD (Omicron BF.7) in complex with PD of ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8i9h",
+      "preferred_assembly": true,
+      "resolution": 3.6,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "S-RBD (Omicron XBB.1) in complex with PD of ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "8if2",
+      "preferred_assembly": true,
+      "resolution": 2.78,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of the receptor binding domain of SARS-CoV-2 Omicron BQ.1.1 variant spike protein in complex with its receptor ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8iov",
+      "preferred_assembly": true,
+      "resolution": 3.29,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Structure of SARS-CoV-2 XBB.1 spike RBD in complex with ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8jje",
+      "preferred_assembly": true,
+      "resolution": 3.4,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "RBD of SARS-CoV2 spike protein with ACE2 decoy"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8jyp",
+      "preferred_assembly": true,
+      "resolution": 3.38,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Structure of SARS-CoV-2 XBB.1.5 spike RBD in complex with ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8qsq",
+      "preferred_assembly": true,
+      "resolution": 3.7,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Locally refined SARS-CoV-2 BA-2.86 Spike receptor binding domain (RBD) complexed with angiotensin converting enzyme 2 (ACE2)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [
+       "antibody"
+      ],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8s9g",
+      "preferred_assembly": true,
+      "resolution": 3.0,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 BN.1 spike RBD bound to the human ACE2 ectodomain and the S309 neutralizing antibody Fab fragment"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8vkp",
+      "preferred_assembly": true,
+      "resolution": 2.77,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of SARS-CoV-2 XBB.1.5 spike protein in complex with human ACE2 (focused refinement of RBD and ACE2)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "8wdr",
+      "preferred_assembly": false,
+      "resolution": 3.47,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of BQ.1.1 RBD complexed with human ACE2"
+     },
+     {
+      "assembly_id": 2,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "8wdr",
+      "preferred_assembly": true,
+      "resolution": 3.47,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of BQ.1.1 RBD complexed with human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "8wds",
+      "preferred_assembly": false,
+      "resolution": 3.4,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of BF.7 RBD complexed with human ACE2"
+     },
+     {
+      "assembly_id": 2,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "8wds",
+      "preferred_assembly": true,
+      "resolution": 3.4,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of BF.7 RBD complexed with human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8wdy",
+      "preferred_assembly": true,
+      "resolution": 2.69,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 Omicron BQ.1.1 RBD complexed with human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8wdz",
+      "preferred_assembly": true,
+      "resolution": 2.71,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 Omicron BQ.1 RBD complexed with human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8we0",
+      "preferred_assembly": true,
+      "resolution": 2.8,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 Omicron XBB RBD complexed with human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8we1",
+      "preferred_assembly": true,
+      "resolution": 2.47,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 Omicron BF.7 RBD complexed with human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [
+       "antibody"
+      ],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8we4",
+      "preferred_assembly": true,
+      "resolution": 2.91,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 Omicron XBB.1.5 RBD complexed with human ACE2 and S304"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8wgw",
+      "preferred_assembly": true,
+      "resolution": 2.9,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Local refinement of RBD-ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8whz",
+      "preferred_assembly": true,
+      "resolution": 3.93,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "BA.2.86 RBD in complex with hACE2 (local refinement)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8wp8",
+      "preferred_assembly": true,
+      "resolution": 2.89,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of SARS-CoV-2 Omicron BA.2.86 RBD in complex with human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8wrh",
+      "preferred_assembly": true,
+      "resolution": 3.08,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 XBB.1.5.70 in complex with ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8wrl",
+      "preferred_assembly": true,
+      "resolution": 3.36,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "XBB.1.5 RBD in complex with ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8wtd",
+      "preferred_assembly": true,
+      "resolution": 3.06,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "XBB.1.5.10 RBD in complex with ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8xln",
+      "preferred_assembly": true,
+      "resolution": 3.78,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Structure of the SARS-CoV-2 EG.5.1 spike RBD in complex with ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8xn2",
+      "preferred_assembly": true,
+      "resolution": 2.79,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 Omicron EG.5.1 RBD in complex with human ACE2 (local refined from the spike protein)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8xn3",
+      "preferred_assembly": true,
+      "resolution": 2.64,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 Omicron HV.1 RBD in complex with human ACE2 (local refinement from the spike protein)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [
+       "antibody"
+      ],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8xsf",
+      "preferred_assembly": true,
+      "resolution": 2.16,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 RBD + IMCAS-364 + hACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [
+       "antibody"
+      ],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8xsj",
+      "preferred_assembly": true,
+      "resolution": 2.61,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 Omicron BA.4 RBD + IMCAS-316 + ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8xv0",
+      "preferred_assembly": true,
+      "resolution": 3.0,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Structure of SARS-CoV-2 BA.2.86 spike RBD in complex with ACE2 (up state)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8xv1",
+      "preferred_assembly": true,
+      "resolution": 3.05,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Structure of SARS-CoV-2 BA.2.86 spike RBD in complex with ACE2 (down state)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [
+       "antibody"
+      ],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8xxw",
+      "preferred_assembly": true,
+      "resolution": 3.03,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Fab M2-7 complexed with SARS-Cov2 RBD and human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "8xy9",
+      "preferred_assembly": false,
+      "resolution": 3.64,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of SARS-CoV-2 BF.7 RBD and human ACE2 complex"
+     },
+     {
+      "assembly_id": 2,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "8xy9",
+      "preferred_assembly": true,
+      "resolution": 3.64,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of SARS-CoV-2 BF.7 RBD and human ACE2 complex"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "8xye",
+      "preferred_assembly": false,
+      "resolution": 3.32,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of SARS-CoV-2 BA.4 RBD and human ACE2"
+     },
+     {
+      "assembly_id": 2,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "8xye",
+      "preferred_assembly": true,
+      "resolution": 3.32,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of SARS-CoV-2 BA.4 RBD and human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "8xyg",
+      "preferred_assembly": true,
+      "resolution": 3.64,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of SARS-CoV-2 BQ.1.1 RBD and human ACE2"
+     },
+     {
+      "assembly_id": 2,
+      "bound_macromolecules": [],
+      "experimental_method": "X-ray diffraction",
+      "pdb_id": "8xyg",
+      "preferred_assembly": false,
+      "resolution": 3.64,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Crystal structure of SARS-CoV-2 BQ.1.1 RBD and human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8xyo",
+      "preferred_assembly": true,
+      "resolution": 3.04,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of CX1 receptor binding domain in complex with human ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8y18",
+      "preferred_assembly": true,
+      "resolution": 3.04,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of SARS-CoV-2 Omicron JN.1 RBD in complex with human ACE2 (local refinement from the spike protein)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [
+       "antibody"
+      ],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8y6a",
+      "preferred_assembly": true,
+      "resolution": 2.72,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of SARS-CoV-2 Omicron BA.2.86 RBD in complex with human ACE2 and S309 Fab"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8yzj",
+      "preferred_assembly": true,
+      "resolution": 2.95,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "The structure of Banal-52 RBD and hACE2 complex"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "8zbq",
+      "preferred_assembly": true,
+      "resolution": 3.03,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Local map of Omicron Subvariant JN.1 RBD with ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "9ele",
+      "preferred_assembly": true,
+      "resolution": 3.16,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of SARS-CoV-2 Omicron KP.3.1.1 RBD in complex with human ACE2 (local refinement of RBD and hACE2)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "9iu1",
+      "preferred_assembly": true,
+      "resolution": 4.3,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Structure of SARS-CoV-2 JN.1 spike RBD in complex with ACE2 (up state)"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "9iup",
+      "preferred_assembly": true,
+      "resolution": 3.3,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "KP.3 RBD in complex with ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "9iuq",
+      "preferred_assembly": true,
+      "resolution": 3.3,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "KP.2 RBD in complex with ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "9iuu",
+      "preferred_assembly": true,
+      "resolution": 3.29,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "JN.1 RBD with Q493E in complex with ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "9ue6",
+      "preferred_assembly": true,
+      "resolution": 2.9,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "Cryo-EM structure of SARS-CoV-2 KP.2 spike RBD in complex with ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [
+       "antibody"
+      ],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "9xhy",
+      "preferred_assembly": true,
+      "resolution": 3.84,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 Omicron BA.4/5 spike RBD in complex with C092 Fab and ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [
+       "antibody"
+      ],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "9xi1",
+      "preferred_assembly": true,
+      "resolution": 2.58,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 Omicron BA.4/5 spike RBD in complex with C092 Fab and ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [
+       "antibody"
+      ],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "9xi2",
+      "preferred_assembly": true,
+      "resolution": 2.83,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 Omicron BA.4/5 spike RBD in complex with C807 Fab and ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [
+       "antibody"
+      ],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "9xi4",
+      "preferred_assembly": true,
+      "resolution": 2.83,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 Omicron BA.4/5 spike RBD in complex with BD56-104 Fab and ACE2"
+     },
+     {
+      "assembly_id": 1,
+      "bound_macromolecules": [
+       "antibody"
+      ],
+      "experimental_method": "Electron microscopy",
+      "pdb_id": "9xi6",
+      "preferred_assembly": true,
+      "resolution": 2.6,
+      "symmetry": {
+       "symbol": "",
+       "type": ""
+      },
+      "title": "SARS-CoV-2 Omicron BA.4/5 spike RBD in complex with BD56-597 Fab and ACE2"
+     }
+    ],
+    "complex_portal_id": null,
+    "name": "Processed angiotensin-converting enzyme 2 and Spike protein S2'",
+    "observed_experimental_methods_with_counts": {
+     "Electron microscopy": 97,
+     "X-ray diffraction": 55
+    },
+    "oligomeric_state": "Heterodimer",
+    "participants": [
+     {
+      "accession": "Q9BYF1",
+      "accession_type": "UniProt",
+      "gene_name": "ACE2",
+      "name": "Processed angiotensin-converting enzyme 2",
+      "stoichiometry": 1
+     },
+     {
+      "accession": "P0DTC2",
+      "accession_type": "UniProt",
+      "gene_name": "S",
+      "name": "Spike glycoprotein",
+      "stoichiometry": 1
+     }
+    ],
+    "polymer_composition": "Protein(2) complex",
+    "representative_structure": {
+     "assembly_id": "1",
+     "pdb_id": "7t9l"
+    },
+    "source_organism": "Homo sapiens, Severe acute respiratory syndrome coronavirus 2",
+    "subcomplexes": [
+     "PDB-CPX-140148",
+     "PDB-CPX-188059"
+    ],
+    "supercomplexes": [],
+    "symmetry": {
+     "symbol": null,
+     "type": null
+    },
+    "total_chains": 2,
+    "unique_bound_macromolecules": [
+     "antibody"
+    ]
+   }
+  ]
+ },
+ "status": 200,
+ "url": "https://www.ebi.ac.uk/pdbe/api/v2/complex/details/PDB-CPX-140195?id_type=pdb_complex_id"
+}

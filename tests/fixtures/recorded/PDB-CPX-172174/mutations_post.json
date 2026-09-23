@@ -1,0 +1,401 @@
+{
+ "body": {
+  "11gl": [
+   {
+    "author_insertion_code": "",
+    "author_residue_number": null,
+    "chain_id": "A",
+    "chem_comp_id": "SER",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "S",
+     "type": "Expression tag"
+    },
+    "residue_number": 1,
+    "struct_asym_id": "A"
+   },
+   {
+    "author_insertion_code": "",
+    "author_residue_number": null,
+    "chain_id": "B",
+    "chem_comp_id": "SER",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "S",
+     "type": "Expression tag"
+    },
+    "residue_number": 1,
+    "struct_asym_id": "B"
+   }
+  ],
+  "11gm": [
+   {
+    "author_insertion_code": "",
+    "author_residue_number": 152,
+    "chain_id": "A",
+    "chem_comp_id": "SER",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "S",
+     "type": "Expression tag"
+    },
+    "residue_number": 1,
+    "struct_asym_id": "A"
+   },
+   {
+    "author_insertion_code": "",
+    "author_residue_number": 152,
+    "chain_id": "B",
+    "chem_comp_id": "SER",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "S",
+     "type": "Expression tag"
+    },
+    "residue_number": 1,
+    "struct_asym_id": "B"
+   },
+   {
+    "author_insertion_code": "",
+    "author_residue_number": 152,
+    "chain_id": "C",
+    "chem_comp_id": "SER",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "S",
+     "type": "Expression tag"
+    },
+    "residue_number": 1,
+    "struct_asym_id": "C"
+   },
+   {
+    "author_insertion_code": "",
+    "author_residue_number": 152,
+    "chain_id": "D",
+    "chem_comp_id": "SER",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "S",
+     "type": "Expression tag"
+    },
+    "residue_number": 1,
+    "struct_asym_id": "D"
+   }
+  ],
+  "11gn": [
+   {
+    "author_insertion_code": "",
+    "author_residue_number": 151,
+    "chain_id": "A",
+    "chem_comp_id": "GLY",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "G",
+     "type": "Expression tag"
+    },
+    "residue_number": 1,
+    "struct_asym_id": "A"
+   },
+   {
+    "author_insertion_code": "",
+    "author_residue_number": 152,
+    "chain_id": "A",
+    "chem_comp_id": "SER",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "S",
+     "type": "Expression tag"
+    },
+    "residue_number": 2,
+    "struct_asym_id": "A"
+   },
+   {
+    "author_insertion_code": "",
+    "author_residue_number": 151,
+    "chain_id": "B",
+    "chem_comp_id": "GLY",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "G",
+     "type": "Expression tag"
+    },
+    "residue_number": 1,
+    "struct_asym_id": "B"
+   },
+   {
+    "author_insertion_code": "",
+    "author_residue_number": 152,
+    "chain_id": "B",
+    "chem_comp_id": "SER",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "S",
+     "type": "Expression tag"
+    },
+    "residue_number": 2,
+    "struct_asym_id": "B"
+   },
+   {
+    "author_insertion_code": "",
+    "author_residue_number": 151,
+    "chain_id": "D",
+    "chem_comp_id": "GLY",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "G",
+     "type": "Expression tag"
+    },
+    "residue_number": 1,
+    "struct_asym_id": "C"
+   },
+   {
+    "author_insertion_code": "",
+    "author_residue_number": 152,
+    "chain_id": "D",
+    "chem_comp_id": "SER",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "S",
+     "type": "Expression tag"
+    },
+    "residue_number": 2,
+    "struct_asym_id": "C"
+   },
+   {
+    "author_insertion_code": "",
+    "author_residue_number": 151,
+    "chain_id": "E",
+    "chem_comp_id": "GLY",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "G",
+     "type": "Expression tag"
+    },
+    "residue_number": 1,
+    "struct_asym_id": "D"
+   },
+   {
+    "author_insertion_code": "",
+    "author_residue_number": 152,
+    "chain_id": "E",
+    "chem_comp_id": "SER",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "S",
+     "type": "Expression tag"
+    },
+    "residue_number": 2,
+    "struct_asym_id": "D"
+   }
+  ],
+  "4loj": [
+   {
+    "author_insertion_code": "",
+    "author_residue_number": null,
+    "chain_id": "A",
+    "chem_comp_id": "SER",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "S",
+     "type": "Expression tag"
+    },
+    "residue_number": 1,
+    "struct_asym_id": "A"
+   },
+   {
+    "author_insertion_code": "",
+    "author_residue_number": null,
+    "chain_id": "B",
+    "chem_comp_id": "SER",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "S",
+     "type": "Expression tag"
+    },
+    "residue_number": 1,
+    "struct_asym_id": "B"
+   }
+  ],
+  "4lok": [
+   {
+    "author_insertion_code": "",
+    "author_residue_number": null,
+    "chain_id": "A",
+    "chem_comp_id": "SER",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "S",
+     "type": "Expression tag"
+    },
+    "residue_number": 1,
+    "struct_asym_id": "A"
+   },
+   {
+    "author_insertion_code": "",
+    "author_residue_number": null,
+    "chain_id": "B",
+    "chem_comp_id": "SER",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "S",
+     "type": "Expression tag"
+    },
+    "residue_number": 1,
+    "struct_asym_id": "B"
+   }
+  ],
+  "4lol": [
+   {
+    "author_insertion_code": "",
+    "author_residue_number": null,
+    "chain_id": "A",
+    "chem_comp_id": "SER",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "S",
+     "type": "Expression tag"
+    },
+    "residue_number": 1,
+    "struct_asym_id": "A"
+   },
+   {
+    "author_insertion_code": "",
+    "author_residue_number": 153,
+    "chain_id": "B",
+    "chem_comp_id": "SER",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "S",
+     "type": "Expression tag"
+    },
+    "residue_number": 1,
+    "struct_asym_id": "B"
+   }
+  ],
+  "4yp1": [
+   {
+    "author_insertion_code": "",
+    "author_residue_number": null,
+    "chain_id": "A",
+    "chem_comp_id": "SER",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "S",
+     "type": "Expression tag"
+    },
+    "residue_number": 1,
+    "struct_asym_id": "A"
+   },
+   {
+    "author_insertion_code": "",
+    "author_residue_number": null,
+    "chain_id": "A",
+    "chem_comp_id": "ASN",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "N",
+     "type": "Expression tag"
+    },
+    "residue_number": 2,
+    "struct_asym_id": "A"
+   },
+   {
+    "author_insertion_code": "",
+    "author_residue_number": null,
+    "chain_id": "A",
+    "chem_comp_id": "ALA",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "A",
+     "type": "Expression tag"
+    },
+    "residue_number": 3,
+    "struct_asym_id": "A"
+   },
+   {
+    "author_insertion_code": "",
+    "author_residue_number": null,
+    "chain_id": "B",
+    "chem_comp_id": "SER",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "S",
+     "type": "Expression tag"
+    },
+    "residue_number": 1,
+    "struct_asym_id": "B"
+   },
+   {
+    "author_insertion_code": "",
+    "author_residue_number": null,
+    "chain_id": "B",
+    "chem_comp_id": "ASN",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "N",
+     "type": "Expression tag"
+    },
+    "residue_number": 2,
+    "struct_asym_id": "B"
+   },
+   {
+    "author_insertion_code": "",
+    "author_residue_number": null,
+    "chain_id": "B",
+    "chem_comp_id": "ALA",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": null,
+     "to": "A",
+     "type": "Expression tag"
+    },
+    "residue_number": 3,
+    "struct_asym_id": "B"
+   }
+  ],
+  "9ltf": [
+   {
+    "author_insertion_code": "",
+    "author_residue_number": 332,
+    "chain_id": "A",
+    "chem_comp_id": "LEU",
+    "entity_id": 1,
+    "mutation_details": {
+     "from": "I",
+     "to": "L",
+     "type": "Conflict"
+    },
+    "residue_number": 182,
+    "struct_asym_id": "A"
+   }
+  ]
+ },
+ "request_body": "11gl,11gm,11gn,4jc5,4kby,4kc0,4loj,4lok,4lol,4yp1,6xnn,9ltf",
+ "status": 200,
+ "url": "https://www.ebi.ac.uk/pdbe/api/v2/pdb/entry/mutated_AA_or_NA"
+}

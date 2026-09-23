@@ -1,0 +1,8 @@
+# Development-only dependencies. Install on top of requirements.txt.
+pytest>=8.0
+
+# Notebook smoke test (tests/smoke): executes notebook.ipynb in a real kernel.
+# Both are already pulled in by `jupyter` in requirements.txt; declared here
+# because the test imports them directly.
+nbformat>=5.10
+nbclient>=0.10

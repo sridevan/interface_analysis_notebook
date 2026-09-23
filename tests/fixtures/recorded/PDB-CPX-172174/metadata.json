@@ -1,0 +1,49 @@
+{
+ "captured_on": "2026-09-23",
+ "complex_id": "PDB-CPX-172174",
+ "config": {
+  "drop_carbohydrate_polymers": false,
+  "ligand_blocklist": [
+   "ACT",
+   "BME",
+   "CA",
+   "CL",
+   "DTT",
+   "EDO",
+   "GOL",
+   "HOH",
+   "K",
+   "MG",
+   "MPD",
+   "NA",
+   "PEG",
+   "SGM",
+   "SO4",
+   "TRS",
+   "ZN"
+  ],
+  "max_entries": null,
+  "max_resolution": null
+ },
+ "frozen": true,
+ "n_interfaces_retained": 14,
+ "n_interfaces_returned": 14,
+ "n_ligand_instances_fetched": 15,
+ "n_requests_recorded": 32,
+ "note": "Frozen regression fixture. Not refreshed automatically; re-capture only after deliberate review.",
+ "pdb_ids": [
+  "11gl",
+  "11gm",
+  "11gn",
+  "4jc5",
+  "4kby",
+  "4kc0",
+  "4loj",
+  "4lok",
+  "4lol",
+  "4yp1",
+  "6xnn",
+  "9ltf"
+ ],
+ "starting_identifier": "11gl"
+}

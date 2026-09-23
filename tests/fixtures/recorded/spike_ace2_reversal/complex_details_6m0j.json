@@ -1,0 +1,42 @@
+{
+ "body": {
+  "6m0j": [
+   {
+    "assemblies": [
+     {
+      "assembly_id": 1,
+      "preferred_assembly": true
+     }
+    ],
+    "complex_portal_id": null,
+    "name": "Processed angiotensin-converting enzyme 2 and Spike protein S2'",
+    "participants": [
+     {
+      "accession": "22hg_3",
+      "stoichiometry": 1
+     },
+     {
+      "accession": "22hg_4",
+      "stoichiometry": 1
+     },
+     {
+      "accession": "P0DTC2",
+      "stoichiometry": 1
+     },
+     {
+      "accession": "Q9BYF1",
+      "stoichiometry": 1
+     }
+    ],
+    "pdb_complex_id": "PDB-CPX-140195",
+    "subcomplexes": [
+     "PDB-CPX-140148",
+     "PDB-CPX-188059"
+    ],
+    "supercomplexes": []
+   }
+  ]
+ },
+ "status": 200,
+ "url": "https://www.ebi.ac.uk/pdbe/api/v2/complex/details/6m0j?id_type=pdb_id"
+}

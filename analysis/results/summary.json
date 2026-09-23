@@ -1,0 +1,15 @@
+{
+  "n_complexes_analysed": 28,
+  "n_complexes_skipped": 2,
+  "n_interfaces": 474,
+  "n_comparisons": 6479,
+  "fraction_swapped_gt_direct": 0.04398826979472141,
+  "fraction_delta_gt_0.2": 0.004630344188918043,
+  "fraction_delta_gt_0.5": 0.0007717240314863404,
+  "n_complexes_any_delta_gt_0.2": 6,
+  "n_complexes_any_delta_gt_0.5": 2,
+  "n_complexes_clustering_changed": 3,
+  "n_complexes_cluster_count_changed": 2,
+  "n_complexes_singletons_reduced": 2,
+  "distance_cut": 0.6
+}

@@ -1,0 +1,7 @@
+complex_id,n_interfaces,clusters_current,clusters_aware,singletons_current,singletons_aware,sizes_current,sizes_aware,partition_changed,pair_agreement
+PDB-CPX-127157,21,1,1,0,0,21,21,False,1.0
+PDB-CPX-118634,8,5,4,4,3,"4,1,1,1,1","5,1,1,1",True,0.857
+PDB-CPX-151132,11,1,1,0,0,11,11,False,1.0
+PDB-CPX-172479,51,2,2,1,1,"50,1","50,1",False,1.0
+PDB-CPX-152431,17,7,5,2,0,"4,4,3,2,2,1,1","7,4,2,2,2",True,0.904
+PDB-CPX-138209,42,5,5,3,3,"34,5,1,1,1","35,4,1,1,1",True,0.956

@@ -323,23 +323,24 @@ def _build_one(item: dict) -> InterfaceRecord:
         # annotation joins which do not require the UniProt mapping.
         rec.author_pairs.add((author_key_1, author_key_2, bond_type))
 
-        # Cross-structure comparison requires UniProt on both sides.
-        if not (u_acc_1 and u_acc_2 and u_pos_1 is not None and u_pos_2 is not None):
-            dropped += 1
-            continue
+        # Residue correspondence is per residue: a side with both an accession
+        # and a position is mapped whether or not its partner is. Comparison
+        # pairs need both sides, and are handled below.
+        u_key_1: UniProtResidueKey | None = (
+            (u_acc_1, int(u_pos_1), 1) if u_acc_1 and u_pos_1 is not None else None
+        )
+        u_key_2: UniProtResidueKey | None = (
+            (u_acc_2, int(u_pos_2), 2) if u_acc_2 and u_pos_2 is not None else None
+        )
 
-        u_key_1: UniProtResidueKey = (u_acc_1, int(u_pos_1), 1)
-        u_key_2: UniProtResidueKey = (u_acc_2, int(u_pos_2), 2)
-
-        # Capture one-letter codes for both residues; canonical per UniProt
-        # position so consistent across structures.
-        if c.get("unp_one_letter_code_1"):
-            rec.residue_identity[u_key_1] = c["unp_one_letter_code_1"]
-        if c.get("unp_one_letter_code_2"):
-            rec.residue_identity[u_key_2] = c["unp_one_letter_code_2"]
-
-        # Microheterogeneity check: two distinct author keys -> same UniProt key.
-        for author_key, u_key in ((author_key_1, u_key_1), (author_key_2, u_key_2)):
+        for side, author_key, u_key in ((1, author_key_1, u_key_1), (2, author_key_2, u_key_2)):
+            if u_key is None:
+                continue
+            # Canonical one-letter code per UniProt position, so consistent
+            # across structures.
+            if c.get(f"unp_one_letter_code_{side}"):
+                rec.residue_identity[u_key] = c[f"unp_one_letter_code_{side}"]
+            # Microheterogeneity check: two distinct author keys -> same UniProt key.
             prior = uniprot_to_first_author.get(u_key)
             if prior is None:
                 uniprot_to_first_author[u_key] = author_key
@@ -349,6 +350,11 @@ def _build_one(item: dict) -> InterfaceRecord:
                 # Keep first-seen mapping. This author key is not added to
                 # author_to_uniprot, so any annotations on it will not be
                 # joined to a UniProt key (intentional).
+
+        # Cross-structure comparison requires UniProt on both sides.
+        if u_key_1 is None or u_key_2 is None:
+            dropped += 1
+            continue
 
         rec.uniprot_pairs.add((u_key_1, u_key_2, bond_type))
 
@@ -367,6 +373,70 @@ def _build_one(item: dict) -> InterfaceRecord:
     rec.n_residues_dropped_no_uniprot = dropped
     rec.n_microheterogeneity_collisions = collisions
     return rec
+
+
+NO_COMPARABLE_CONTACTS = "no_comparable_uniprot_contacts"
+
+
+@dataclass
+class ComparableSelection:
+    """Records eligible for contact-based comparison, and those held back.
+
+    An interface is comparable only if at least one of its residue-residue
+    contacts is represented in the UniProt coordinate system. An interface
+    with PISA contacts but no comparable pair carries insufficient comparable
+    information; it is not identical to another such interface, so it must not
+    enter the similarity matrix, the clustering, or any frequency whose
+    denominator is the number of interfaces compared. Excluded records are
+    kept here for provenance, with the reason keyed on `InterfaceRecord.key`.
+    """
+
+    records: list[InterfaceRecord]
+    excluded: list[InterfaceRecord]
+    reasons: dict[tuple[str, str, int], str]
+
+    def summary(self) -> str:
+        if not self.excluded:
+            return (
+                f"All {len(self.records)} interfaces have at least one comparable "
+                f"UniProt contact pair."
+            )
+        lines = [
+            f"Excluded {len(self.excluded)} of {len(self.records) + len(self.excluded)} "
+            f"interfaces from the contact-based comparison:"
+        ]
+        for r in self.excluded:
+            lines.append(
+                f"  {r.label()}  {self.reasons[r.key]}  "
+                f"({len(r.author_pairs)} author-space contacts, "
+                f"{len(r.author_to_uniprot)} residues mapped to UniProt)"
+            )
+        lines.append(f"Retained {len(self.records)} interfaces for comparison.")
+        return "\n".join(lines)
+
+
+def select_comparable_records(records: list[InterfaceRecord]) -> ComparableSelection:
+    """Split records into those with >= 1 UniProt contact pair and the rest.
+
+    No minimum contact count is applied: one comparable pair is enough. The
+    excluded records still carry their author-space contacts and any
+    individual residue mappings, so annotations can be joined onto them.
+    """
+    comparable: list[InterfaceRecord] = []
+    excluded: list[InterfaceRecord] = []
+    reasons: dict[tuple[str, str, int], str] = {}
+    for r in records:
+        if r.uniprot_pairs:
+            comparable.append(r)
+        else:
+            excluded.append(r)
+            reasons[r.key] = NO_COMPARABLE_CONTACTS
+    if excluded:
+        log.warning(
+            "Excluded %d interfaces with no comparable UniProt contact pairs: %s",
+            len(excluded), ", ".join(r.label() for r in excluded),
+        )
+    return ComparableSelection(records=comparable, excluded=excluded, reasons=reasons)
 
 
 def check_partner_consistency(records: list[InterfaceRecord]) -> list[InterfaceRecord]:

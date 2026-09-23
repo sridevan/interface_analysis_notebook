@@ -40,6 +40,35 @@ The Phase 5a explorer then renders the whole-dataset view once instead of buildi
 Its widget layout hangs `nbconvert --execute`: the kernel goes idle while the client waits
 for a reply that never arrives. The variable has no effect on interactive use.
 
+## Tests
+
+```bash
+python -m pip install -r requirements.txt -r requirements-dev.txt
+pytest -v
+```
+
+The default suite runs entirely offline. It covers four layers:
+
+- **unit regressions** over the core scientific logic (residue correspondence, partner
+  orientation, similarity and clustering, annotation mapping, conservation arithmetic)
+  and over identifier resolution and API error handling;
+- **STING frozen end-to-end regression**, the full homodimer state-analysis path from
+  identifier to JSON export;
+- **Spike RBD-ACE2 frozen end-to-end regression**, heterodimer partner-order
+  normalisation and annotation integrity;
+- **notebook smoke test**, which executes every code cell of `notebook.ipynb` against
+  recorded STING data.
+
+The end-to-end and smoke tests read recorded PDBe responses from
+`tests/fixtures/recorded/`, so no test depends on live PDBe data. The fixtures are frozen
+and are not refreshed automatically.
+
+The offline suite runs automatically with GitHub Actions on pushes to `main` and on pull
+requests (`.github/workflows/tests.yml`).
+
+Detailed testing rationale and regression-case documentation are under
+`spec/new/testing_*`.
+
 ## Interpreting the output
 
 Scope and limitations are documented in the notebook, as guidance at the phase each applies
@@ -93,8 +122,13 @@ pdbe_interfaces/
   outputs.py         structure table, conserved sets, cluster report, JSON export
   visualize.py       Mol* cluster-representative builders
 notebook.ipynb       phase narrative, configuration and guidance (Phases 1–7)
+tests/
+  unit/              offline unit regressions
+  e2e/               frozen scientific regressions (STING, Spike RBD–ACE2)
+  smoke/             notebook execution smoke test
+  fixtures/recorded/ frozen PDBe responses
 spec/
-  new/               current spec (final_spec.md) + demo notes
+  new/               current spec (final_spec.md), demo notes, testing reports
   old/               earlier draft + implementation brief
 ```
 

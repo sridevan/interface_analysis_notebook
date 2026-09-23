@@ -12,6 +12,9 @@ This specification has been updated to match the implemented notebook. Changes f
 - **A resolution-gap QC warning** was added (*Cluster QC warnings*).
 - **New modules** `config.py`, `plots.py` and `explorer.py` hold the settings, figures and interactive widget, so the notebook carries narrative and configuration rather than implementation (*Component / Module Breakdown*).
 - **Scope and limitations are stated in the notebook itself**, at the phase where each applies.
+- **Residue correspondence is decided per residue, and contact-pair comparability per contact.** A residue with a UniProt accession and position keeps its mapping whether or not its contact partner maps; a contact enters the comparison representation only when both sides map (*Residue correspondence and contact-pair comparability*).
+- **Interfaces with no comparable contact pair are held out of the comparison.** They stay in the run for provenance and annotation, with the reason recorded (*Comparable-interface eligibility*; *Failure handling and empty-result behaviour*).
+- **Homodimer orientation dependence** is recorded as a known limitation with the evidence from an exploratory diagnostic (*Known Limitation: Homodimer Orientation Dependence*).
 
 ---
 
@@ -44,6 +47,10 @@ Implementing this notebook correctly requires understanding several domain conce
 **Summary counts and residue-pair records answer different questions.** `interface_info` reports PISA's own bond counts, while `interactions` lists individual residue-pair records, and for a minority of interfaces the summary is the larger of the two: 3 of 14 for STING, 10 of 163 for insulin. The difference tracks residues outside the canonical UniProt sequence. Entries carrying expression tags or cloning artefacts mismatch in 93% of insulin interfaces (13 of 14) against 1% of untagged entries (1 of 149); for STING the figures are 33% and 0%. Across 3,700 raw records from four complexes, every record carried both a UniProt accession and a sequence position, and none lacked a mapping.
 
 The reading is that PISA counts every bond it finds, including those made by tag and linker residues, while the endpoint emits only UniProt-mapped residue pairs. That is the correct behaviour for cross-structure comparison, since tag-mediated contacts are construct artefacts and are not comparable between depositions. It also explains why `InterfaceRecord.n_residues_dropped_no_uniprot` is zero in every complex tested: the workflow's own UniProt filter has nothing to remove because the filtering already happened upstream. The discrepancy is not missing data and should not be treated as such.
+
+**Complexes are aggregated by mapped component identity and stoichiometry.** Assemblies grouped under a PDB complex identifier share the same mapped component composition, represented by UniProt accessions or, where a polymer is unmapped, by the corresponding unmapped-entity identifiers. Because orthologous proteins carry different component identities, replacing a component with its orthologue yields a different composition and therefore a different complex identifier, so variation between complexes containing different orthologues is never mixed into one aggregation. Every run of this workflow consequently compares structural instances of the same component composition, and the interface states and contact differences it reports cannot be produced by substituting one orthologue for another.
+
+An individual complex may nevertheless contain components from more than one organism: the Spike RBD with ACE2 complex pairs human ACE2 (`Q9BYF1`) with SARS-CoV-2 Spike (`P0DTC2`). The constraint is on component identity, not on the complex being single-organism. Where a result is compared with literature on an orthologue of one component, that comparison concerns transferability of the interpretation and requires explicit residue correspondence; it is not part of the aggregation.
 
 **Why a single complex has many structures.** PDBe-KB groups PDB entries by complex composition. The same heterodimer can be deposited tens of times, different mutants, different bound ligands, different crystal forms, different resolutions, different research groups. Each deposition contributes one or more *assemblies*, and each assembly can contain one or more *interfaces*. The unit of analysis here is the interface, keyed by `(pdb_id, assembly_id, interface_id)`.
 
@@ -141,7 +148,8 @@ Implementation: a set of valid `(pdb_id, assembly_id)` tuples is built from `com
 
 ### Warning conditions (logged at WARNING, do not halt)
 
-- Interface residues lacking a UniProt mapping in the response. Drop them, log a count, and record the count per interface in the structure table.
+- Contacts with a residue lacking a UniProt mapping on either side. The contact is kept in the author-keyed set and left out of the UniProt-keyed set; log the count and record it per interface in the structure table (`n_residues_dropped_no_uniprot`). A residue that does carry both an accession and a position keeps its own mapping regardless (see *Residue correspondence and contact-pair comparability*).
+- Interfaces with no comparable UniProt contact pair. Log the interface labels, list them with the reason `no_comparable_uniprot_contacts` in the Phase 2 summary, and exclude them from the comparison (see *Comparable-interface eligibility*).
 - `(unp_accession_1, unp_accession_2)` ordering inconsistent across interfaces of the same complex. Log a warning, reverse role assignment for the inconsistent entries, then proceed.
 - Bound molecules dropped by the carbohydrate-polymer filter or the ligand blocklist. Log the dropped chem_comp_ids per PDB ID at INFO; this is an audit trail for the filter, not a problem.
 
@@ -171,9 +179,9 @@ This change makes the workflow safe at scale (large multimer complexes, when v2 
 ### Edge cases
 
 - **PDB entries with multiple assemblies, or multiple interfaces per assembly,** contribute multiple rows to the structure table. This is correct behaviour, not deduplication.
-- **Homodimers.** Both partners share a UniProt accession; role distinguishes them. Symmetric contacts (e.g. `(chain1:25, chain2:87)` and `(chain1:87, chain2:25)`) are preserved as distinct ordered tuples in the interaction set, which is the correct physical behaviour.
+- **Homodimers.** Both partners share a UniProt accession; role distinguishes them. Symmetric contacts (e.g. `(chain1:25, chain2:87)` and `(chain1:87, chain2:25)`) are preserved as distinct ordered tuples in the interaction set, which is the correct physical behaviour. Because the two partners have the same identity, the partner-consistency check cannot act on homodimers, and the orientation PISA reports for each instance is used as-is; see *Known Limitation: Homodimer Orientation Dependence*.
 - **No mutations or no ligands returned.** Not an error. Annotation lists are empty; structure table columns are zero.
-- **Two distinct author residues mapping to the same UniProt position** (microheterogeneity, alternate residue identities). The workflow does not detect this, it is documented in §11 of the source spec as a load-bearing assumption that SIFTS provides a one-to-one mapping per `(pdb_id, auth_asym_id, auth_seq_id, ins_code)`.
+- **Two distinct author residues mapping to the same UniProt position** (microheterogeneity, alternate residue identities). Detected per interface during Phase 2: the first-seen author residue keeps the mapping, later colliding author residues are not entered into the residue→UniProt map, the collision count is logged at WARNING and recorded per interface (`n_microheterogeneity`). Mapping is decided per residue, so this rule applies to each side of a contact independently.
 
 ---
 
@@ -245,8 +253,9 @@ The notebook is organised as a sequence of phases, each mapping to one or two ce
 
 **Phase 2; Build representations.**
 4. For each interface in the response, build the author-keyed and UniProt-keyed interaction-pair sets, including the atom-level → residue-pair-and-bond-type aggregation.
-5. Drop interface residues lacking a UniProt mapping, log a warning, record the count per interface.
+5. Map each interface residue to UniProt independently, whenever both an accession and a sequence position are present. A contact enters the UniProt-keyed set only when both of its residues map; otherwise it stays in the author-keyed set only, and the count is logged and recorded per interface.
 6. Run the cross-structure consistency check on `(unp_accession_1, unp_accession_2)`. Reverse role assignment for inconsistent interfaces.
+6a. Split the records into those with at least one UniProt-keyed contact pair and those with none. Only the former proceed to Phases 3, 5 and 5b and to the export; the latter are listed with the reason `no_comparable_uniprot_contacts` and still take part in Phase 4 (see *Comparable-interface eligibility*).
 
 **Phase 3; Similarity and clustering.**
 7. Compute pairwise Jaccard similarity between all interfaces using the UniProt-keyed, typed interaction-pair sets. Compute an untyped variant (collapsing across `bond_type`) as a robustness check.
@@ -310,6 +319,49 @@ The notebook is the deliverable. There is no CLI in v1. Users open `notebook.ipy
 Each row in the PISA response is an atom-level contact. Atom-level contacts sharing the same key (residue pair plus `bond_type`) collapse to a single set element. A residue pair forming contacts of different `bond_type` values appears as multiple elements. Atom-level detail is not retained.
 
 Aggregation is per interface and per key. For homodimers, ordering preserves both directions of a symmetric contact as distinct elements (correct physical behaviour).
+
+### Residue correspondence and contact-pair comparability
+
+Two different questions are answered at two different levels, and the answers are kept separate.
+
+**Residue-level UniProt correspondence** is decided per residue. A residue is mapped whenever the response carries both a UniProt accession and a UniProt sequence position for it, and the mapping is entered into the record's residue→UniProt map (`author_to_uniprot`) with its role. Nothing is inferred: if either component is absent, the residue stays unmapped. The mapping is independent of whether the residue's contact partner can be mapped.
+
+**Contact-pair comparability** is decided per contact. A residue–residue contact contributes to the UniProt-keyed comparison set only when both of its residues are mapped. A contact with one unmapped side is kept in the author-keyed set, counted in `n_residues_dropped_no_uniprot`, and left out of the comparison set.
+
+For a partially mapped contact:
+
+```
+A50  → P12345:50 (role 1)        mapping retained in author_to_uniprot
+B106 → no UniProt mapping        remains unmapped
+A50–B106                         not added to the UniProt-keyed comparison set
+```
+
+The consequence for Phase 4 is that a mutation, modification or ligand contact on `A50` resolves to `P12345:50` in the usual way, even though the contact it belongs to is not comparable across structures. An annotation on `B106` is still reported as at the interface (it is an interface residue in author space) but with no UniProt key. Microheterogeneity is handled per residue with the first-seen rule described under *Edge cases*.
+
+### Comparable-interface eligibility
+
+An interface instance is eligible for contact-based cross-instance comparison only when at least one of its residue–residue contacts is represented in the common UniProt coordinate system:
+
+```
+0 comparable pairs   → excluded from the comparative analysis
+>= 1 comparable pair → retained
+```
+
+There is no other minimum. One comparable pair is sufficient, and no minimum-contact threshold is applied at this step; sparse fingerprints are flagged later by the cluster QC warnings rather than excluded here.
+
+An instance with zero comparable UniProt contact pairs:
+
+- is retained in the run for provenance, on `ComparableSelection.excluded`, with the reason `no_comparable_uniprot_contacts` keyed on `(pdb_id, assembly_id, interface_id)`;
+- may still hold author-space contacts, individually mapped residues, and annotations, all of which remain available in Phase 4;
+- is excluded from the similarity matrix;
+- is excluded from clustering;
+- is excluded from residue and contact conservation calculated on the comparison representation;
+- is excluded from contact-frequency calculations, including the JSON export;
+- is excluded from rewiring calculations.
+
+The reason is methodological. Such an instance carries no comparable contact information, so it can be neither similar nor dissimilar to any other instance: missing correspondence must not be read as biological variation, and two instances that both lack correspondence must not be read as biologically identical. The Jaccard utility itself is unchanged, `jaccard(set(), set())` still returns `1.0` as a mathematical convention, but records with an empty comparison set never reach that stage of the workflow.
+
+Phase 2 prints the split (total instances after the Phase 1 assembly filters, instances retained for comparison, instances excluded with their reason), and the per-interface summary table lists every instance with its UniProt-keyed pair count.
 
 ### Output schema: Structure table
 
@@ -544,7 +596,7 @@ Approximately half of the reported contacts were reproducible from labels carryi
 
 - Empty annotation streams (no mutations, no ligands) produce empty long-form dataframes and zero counts in the structure table, not errors.
 - A cluster whose members carry no at-interface annotation produces a row with `has_annotations = False` and a `notes` value stating that no mutation, modification or ligand was recorded at the interface and that no member carries any.
-- An interface with all residues dropped for missing UniProt mapping (pathological) is excluded from the similarity matrix and flagged in the structure table with `n_residues_dropped_no_uniprot` equal to the original residue count and zero contribution to clustering.
+- An interface with no UniProt-keyed contact pair is held out of the similarity matrix, clustering, conservation, frequency, rewiring and export steps (see *Comparable-interface eligibility*). It is listed in the Phase 2 summary with the reason `no_comparable_uniprot_contacts`, appears in the per-interface summary table with `n_uniprot_pairs = 0`, and still receives annotations in Phase 4. The structure table and cluster report cover the retained instances only.
 
 ### Ambiguity handling
 
@@ -757,7 +809,9 @@ project_root/
   def build_interface_records(interface_response: dict) -> list[InterfaceRecord]
   def build_interaction_pair_sets(record: InterfaceRecord) -> tuple[set, set]
   def check_partner_consistency(records: list[InterfaceRecord]) -> list[InterfaceRecord]
+  def select_comparable_records(records: list[InterfaceRecord]) -> ComparableSelection
   ```
+- **`ComparableSelection` dataclass.** `records` (instances with at least one UniProt-keyed pair), `excluded` (the rest, kept for provenance), `reasons` (`InterfaceRecord.key` → `NO_COMPARABLE_CONTACTS`), and a `summary()` for the Phase 2 printout. See *Comparable-interface eligibility*.
 - **`InterfaceRecord` dataclass.** Holds `pdb_id`, `assembly_id`, `interface_id`, the `interface_info` PISA metrics (as a nested dict), the two interaction-pair sets, the residue→UniProt mapping, the partner accessions and roles. No methods beyond construction.
 - **Integration points.** Outputs feed `similarity.py`, `annotations.py`, and `outputs.py`.
 
@@ -862,7 +916,7 @@ The notebook embeds the following copy verbatim. All text is for a technically l
 
 ### Phase 2 preamble
 
-> **Phase 2; Build representations.** Each interface is represented as a set of `(residue_1, residue_2, bond_type)` tuples. We build two versions: one keyed by author chain and residue number (used for joining annotations within a structure), one keyed by UniProt accession and sequence position with a role label (used for comparison across structures). Interface residues lacking a UniProt mapping are dropped, these are usually termini or expression-tag residues, and they are not comparable across structures anyway.
+> **Phase 2; Build representations.** Each interface is represented as a set of `(residue_1, residue_2, bond_type)` tuples. We build two versions: one keyed by author chain and residue number (used for joining annotations within a structure), one keyed by UniProt accession and sequence position with a role label (used for comparison across structures). Each residue is mapped to UniProt on its own; a contact is comparable across structures only when both of its residues map. Contacts with an unmapped residue, usually termini or expression-tag residues, stay in the author-keyed set only. An interface with no comparable contact at all is listed here and left out of the comparison, though its mapped residues still receive annotations.
 
 ### Phase 3 preamble
 
@@ -890,7 +944,11 @@ The notebook embeds the following copy verbatim. All text is for a technically l
 
 ### Warning: residues dropped for missing UniProt mapping
 
-> Dropped {n} residues at interface {pdb_id}/{assembly_id}/{interface_id} for missing UniProt mapping. These residues are not included in cross-structure comparison. Total drops are recorded in the structure table.
+> Dropped {n} atom-level contacts at interface {pdb_id}/{assembly_id}/{interface_id} for missing UniProt mapping. These contacts are not included in cross-structure comparison; a residue that does map keeps its own UniProt correspondence. Total drops are recorded in the structure table.
+
+### Warning: interfaces with no comparable contact
+
+> Excluded {n} of {total} interfaces from the contact-based comparison: {label} no_comparable_uniprot_contacts ({a} author-space contacts, {m} residues mapped to UniProt). Retained {k} interfaces for comparison.
 
 ### Warning: partner-order inconsistency
 
@@ -1147,6 +1205,22 @@ In the insulin complex `PDB-CPX-130512`, all 163 interfaces carry two interchain
 **If disulfides become available**, no change is required here. `bond_type` is read verbatim from the response (`representation._build_one`) and flows through the interaction-pair sets, clustering, cluster report, rewiring table and JSON export without an allowlist anywhere; this was verified by injecting a synthetic value and confirming it appears in every downstream output. Only the Phase 2 guidance would need updating.
 
 Investigation detail, including the classification rules and the remediation route, is held internally rather than in this repository.
+
+## Known Limitation: Homodimer Orientation Dependence
+
+**Homodimer interfaces.** Contacts are compared using the partner orientation reported for each structural instance. Because the two partners have the same molecular identity, the partner-consistency check has nothing to act on, and equivalent homodimer interfaces reported with opposite partner orientations can appear less similar than they are. How much less depends on the interface: a fully symmetric contact set is unaffected, a partially symmetric one keeps the contacts that are their own mirror image, and an asymmetric one with a sparse fingerprint can lose all overlap. An exploratory diagnostic indicates that this has little effect on most interfaces but can influence clustering for sparse contact fingerprints. Singleton or small states in homodimers with few mapped contacts should therefore be interpreted with caution, and it is worth checking whether their members are assemblies of the same entry.
+
+**Production behaviour.** Unchanged. Contacts remain ordered `(role 1, role 2)` tuples for homodimers, the Jaccard measure, the clustering method, and the rewiring and annotation logic are as described elsewhere in this document, and no minimum-contact threshold is applied. The evidence below supports an interpretation note, not a redesign; global canonicalisation of homodimer contacts, or an orientation-aware similarity, would be a separate decision.
+
+**Developer note: exploratory diagnostic (2026-09-23).** `analysis/homodimer_orientation_diagnostic.py` compared, for every pair of comparable interface instances of a homodimer complex, the production similarity with the similarity after a global exchange of the two copies for one instance (`delta = swapped − direct`), and the clustering at the default cut against a diagnostic `max(direct, swapped)` similarity. The sample was 28 homodimer complexes with 474 interfaces and 6,479 pairwise comparisons, drawn from homodimer complexes with 8 to 60 assemblies in the PDBe-KB complexes listing, with STING and triosephosphate isomerase included deliberately. It is an exploratory diagnostic sample, not an unbiased PDB-wide prevalence estimate, and the figures describe pairwise comparisons within that sample only.
+
+- In this sample, exchanging orientation increased similarity in 4.4% of pairwise comparisons, by more than 0.2 in 0.46%, and by more than 0.5 in 0.08%.
+- The partition changed in 3 of the 28 complexes and the cluster count in 2; in both of the latter, the affected interfaces had one or two mapped contacts, and singleton states disappeared under the diagnostic similarity.
+- The effect concentrates in sparse fingerprints: among comparisons where the sparser interface had one or two contacts, 7.4% exceeded 0.2; among those with ten or more, 0.07%.
+- Rich interfaces are not immune. The clearest example was a PARP15 pair with 17 contacts each at 0.79 direct and 1.00 swapped, an identical interface reported in opposite orientation, though it did not change the clustering.
+- Six of the twelve pairs with a delta of at least 0.5 were two assemblies of the same PDB entry. Opposite orientation can therefore arise from the reported chain order alone rather than from a conformational difference between depositions. This is an observation to check by hand, not an algorithmic rule.
+
+Outputs are in `analysis/results/`; the method and the per-complex tables are in `spec/new/testing_tranche1_5_report.md`.
 
 ## Resolved During Implementation
 

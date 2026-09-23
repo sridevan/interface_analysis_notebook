@@ -1,0 +1,3050 @@
+{
+ "6m0j/A/903": {
+  "body": {
+   "6m0j": [
+    {
+     "interactions": [
+      {
+       "distance": 3.12,
+       "end": {
+        "atom_names": [
+         "OG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 420,
+        "chain_id": "A",
+        "chem_comp_id": "SER"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C7"
+       ]
+      },
+      {
+       "distance": 3.12,
+       "end": {
+        "atom_names": [
+         "OG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 420,
+        "chain_id": "A",
+        "chem_comp_id": "SER"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "weak_polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C8"
+       ]
+      },
+      {
+       "distance": 2.76,
+       "end": {
+        "atom_names": [
+         "OG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 420,
+        "chain_id": "A",
+        "chem_comp_id": "SER"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O3"
+       ]
+      },
+      {
+       "distance": 2.88,
+       "end": {
+        "atom_names": [
+         "OG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 420,
+        "chain_id": "A",
+        "chem_comp_id": "SER"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "hbond",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "N2"
+       ]
+      },
+      {
+       "distance": 5.53,
+       "end": {
+        "atom_names": [
+         "C",
+         "CA",
+         "N",
+         "O"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 545,
+        "chain_id": "A",
+        "chem_comp_id": "SER"
+       },
+       "interaction_details": [
+        "AMIDEAMIDE"
+       ],
+       "interaction_type": "group-group",
+       "ligand_atoms": [
+        "C7",
+        "C8",
+        "N2",
+        "O7"
+       ]
+      },
+      {
+       "distance": 2.46,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 546,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C2"
+       ]
+      },
+      {
+       "distance": 2.87,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 546,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "N2"
+       ]
+      },
+      {
+       "distance": 3.39,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 546,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "hbond",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O7"
+       ]
+      },
+      {
+       "distance": 2.38,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 546,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      },
+      {
+       "distance": 3.32,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 546,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C7"
+       ]
+      },
+      {
+       "distance": 3.21,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 546,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      },
+      {
+       "distance": 1.45,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 546,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "covalent"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 2.45,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 546,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 2.8,
+       "end": {
+        "atom_names": [
+         "OD1"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 546,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "weak_polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      }
+     ],
+     "ligand": {
+      "author_insertion_code": " ",
+      "author_residue_number": 903,
+      "chain_id": "A",
+      "chem_comp_id": "NAG"
+     }
+    }
+   ]
+  },
+  "status": 200
+ },
+ "6m0j/A/904": {
+  "body": {
+   "6m0j": [
+    {
+     "interactions": [
+      {
+       "distance": 3.18,
+       "end": {
+        "atom_names": [
+         "CE"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 26,
+        "chain_id": "A",
+        "chem_comp_id": "LYS"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "weak_polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O6"
+       ]
+      },
+      {
+       "distance": 3.43,
+       "end": {
+        "atom_names": [
+         "CD"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 26,
+        "chain_id": "A",
+        "chem_comp_id": "LYS"
+       },
+       "interaction_details": [
+        "weak_polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O6"
+       ]
+      },
+      {
+       "distance": 2.3,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      },
+      {
+       "distance": 3.03,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "N2"
+       ]
+      },
+      {
+       "distance": 2.48,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C2"
+       ]
+      },
+      {
+       "distance": 1.44,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "covalent"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 2.43,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 3.18,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C7"
+       ]
+      },
+      {
+       "distance": 2.84,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O7"
+       ]
+      },
+      {
+       "distance": 3.31,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O7"
+       ]
+      },
+      {
+       "distance": 2.77,
+       "end": {
+        "atom_names": [
+         "OD1"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "weak_polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      }
+     ],
+     "ligand": {
+      "author_insertion_code": " ",
+      "author_residue_number": 904,
+      "chain_id": "A",
+      "chem_comp_id": "NAG"
+     }
+    }
+   ]
+  },
+  "status": 200
+ },
+ "6m0j/A/905": {
+  "body": {
+   "6m0j": [
+    {
+     "interactions": [
+      {
+       "distance": 2.42,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 322,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      },
+      {
+       "distance": 1.45,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 322,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "covalent"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 2.43,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 322,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 2.76,
+       "end": {
+        "atom_names": [
+         "OD1"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 322,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "weak_polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 2.47,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 322,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C2"
+       ]
+      },
+      {
+       "distance": 2.89,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 322,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "N2"
+       ]
+      }
+     ],
+     "ligand": {
+      "author_insertion_code": " ",
+      "author_residue_number": 905,
+      "chain_id": "A",
+      "chem_comp_id": "NAG"
+     }
+    }
+   ]
+  },
+  "status": 200
+ },
+ "6m0j/A/906": {
+  "body": {
+   "6m0j": [
+    {
+     "interactions": [
+      {
+       "distance": 3.25,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 53,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      },
+      {
+       "distance": 2.32,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 53,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      },
+      {
+       "distance": 3.0,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 53,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "N2"
+       ]
+      },
+      {
+       "distance": 2.87,
+       "end": {
+        "atom_names": [
+         "OD1"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 53,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "weak_polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 2.45,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 53,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C2"
+       ]
+      },
+      {
+       "distance": 2.49,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 53,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 1.44,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 53,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "covalent"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 2.99,
+       "end": {
+        "atom_names": [
+         "OG1"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 55,
+        "chain_id": "A",
+        "chem_comp_id": "THR"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "hbond",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O6"
+       ]
+      },
+      {
+       "distance": 3.08,
+       "end": {
+        "atom_names": [
+         "OE2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 57,
+        "chain_id": "A",
+        "chem_comp_id": "GLU"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "weak_polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C6"
+       ]
+      },
+      {
+       "distance": 3.11,
+       "end": {
+        "atom_names": [
+         "OE2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 57,
+        "chain_id": "A",
+        "chem_comp_id": "GLU"
+       },
+       "interaction_details": [
+        "vdw",
+        "hbond",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O6"
+       ]
+      },
+      {
+       "distance": 3.59,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 58,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "hbond"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      },
+      {
+       "distance": 3.25,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 58,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O6"
+       ]
+      }
+     ],
+     "ligand": {
+      "author_insertion_code": " ",
+      "author_residue_number": 906,
+      "chain_id": "A",
+      "chem_comp_id": "NAG"
+     }
+    }
+   ]
+  },
+  "status": 200
+ },
+ "6m0j/E/601": {
+  "body": {
+   "6m0j": [
+    {
+     "interactions": [
+      {
+       "distance": 4.07,
+       "end": {
+        "atom_names": [
+         "CB"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 338,
+        "chain_id": "E",
+        "chem_comp_id": "PHE"
+       },
+       "interaction_details": [
+        "hydrophobic"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C8"
+       ]
+      },
+      {
+       "distance": 5.83,
+       "end": {
+        "atom_names": [
+         "C",
+         "CA",
+         "N",
+         "O"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 342,
+        "chain_id": "E",
+        "chem_comp_id": "PHE"
+       },
+       "interaction_details": [
+        "AMIDEAMIDE"
+       ],
+       "interaction_type": "group-group",
+       "ligand_atoms": [
+        "C7",
+        "C8",
+        "N2",
+        "O7"
+       ]
+      },
+      {
+       "distance": 4.34,
+       "end": {
+        "atom_names": [
+         "CB"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 342,
+        "chain_id": "E",
+        "chem_comp_id": "PHE"
+       },
+       "interaction_details": [
+        "hydrophobic"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C8"
+       ]
+      },
+      {
+       "distance": 2.98,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 343,
+        "chain_id": "E",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "N2"
+       ]
+      },
+      {
+       "distance": 2.48,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 343,
+        "chain_id": "E",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C2"
+       ]
+      },
+      {
+       "distance": 2.84,
+       "end": {
+        "atom_names": [
+         "OD1"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 343,
+        "chain_id": "E",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "weak_polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 1.45,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 343,
+        "chain_id": "E",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "covalent"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 2.35,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 343,
+        "chain_id": "E",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      },
+      {
+       "distance": 2.48,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 343,
+        "chain_id": "E",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 3.27,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 343,
+        "chain_id": "E",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      },
+      {
+       "distance": 4.48,
+       "end": {
+        "atom_names": [
+         "CD1"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 368,
+        "chain_id": "E",
+        "chem_comp_id": "LEU"
+       },
+       "interaction_details": [
+        "hydrophobic"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C8"
+       ]
+      }
+     ],
+     "ligand": {
+      "author_insertion_code": " ",
+      "author_residue_number": 601,
+      "chain_id": "E",
+      "chem_comp_id": "NAG"
+     }
+    }
+   ]
+  },
+  "status": 200
+ },
+ "7p19/A/701": {
+  "body": {
+   "7p19": [
+    {
+     "interactions": [
+      {
+       "distance": 2.7,
+       "end": {
+        "atom_names": [
+         "NZ"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 26,
+        "chain_id": "A",
+        "chem_comp_id": "LYS"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "hbond",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      },
+      {
+       "distance": 2.76,
+       "end": {
+        "atom_names": [
+         "OD1"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "weak_polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 2.42,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 1.44,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "covalent"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 3.25,
+       "end": {
+        "atom_names": [
+         "OD1"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "N2"
+       ]
+      },
+      {
+       "distance": 3.25,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "N2"
+       ]
+      },
+      {
+       "distance": 3.34,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C2"
+       ]
+      },
+      {
+       "distance": 2.88,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "N2"
+       ]
+      },
+      {
+       "distance": 2.46,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C2"
+       ]
+      },
+      {
+       "distance": 2.38,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      }
+     ],
+     "ligand": {
+      "author_insertion_code": " ",
+      "author_residue_number": 701,
+      "chain_id": "A",
+      "chem_comp_id": "NAG"
+     }
+    }
+   ]
+  },
+  "status": 200
+ },
+ "7p19/A/703": {
+  "body": {
+   "7p19": [
+    {
+     "interactions": [
+      {
+       "distance": 3.2,
+       "end": {
+        "atom_names": [
+         "OG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 420,
+        "chain_id": "A",
+        "chem_comp_id": "SER"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "weak_hbond",
+        "weak_polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C8"
+       ]
+      },
+      {
+       "distance": 2.85,
+       "end": {
+        "atom_names": [
+         "OG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 420,
+        "chain_id": "A",
+        "chem_comp_id": "SER"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "hbond",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "N2"
+       ]
+      },
+      {
+       "distance": 3.27,
+       "end": {
+        "atom_names": [
+         "OG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 420,
+        "chain_id": "A",
+        "chem_comp_id": "SER"
+       },
+       "interaction_details": [
+        "vdw"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C7"
+       ]
+      },
+      {
+       "distance": 3.45,
+       "end": {
+        "atom_names": [
+         "OG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 420,
+        "chain_id": "A",
+        "chem_comp_id": "SER"
+       },
+       "interaction_details": [
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O3"
+       ]
+      },
+      {
+       "distance": 2.84,
+       "end": {
+        "atom_names": [
+         "OD1"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 546,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "N2"
+       ]
+      },
+      {
+       "distance": 3.1,
+       "end": {
+        "atom_names": [
+         "OD1"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 546,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C7"
+       ]
+      },
+      {
+       "distance": 3.3,
+       "end": {
+        "atom_names": [
+         "OD1"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 546,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw",
+        "weak_polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 3.33,
+       "end": {
+        "atom_names": [
+         "OD1"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 546,
+        "chain_id": "A",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "weak_polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C8"
+       ]
+      }
+     ],
+     "ligand": {
+      "author_insertion_code": " ",
+      "author_residue_number": 703,
+      "chain_id": "A",
+      "chem_comp_id": "NAG"
+     }
+    }
+   ]
+  },
+  "status": 200
+ },
+ "7p19/E/601": {
+  "body": {
+   "7p19": [
+    {
+     "interactions": [
+      {
+       "distance": 2.53,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 343,
+        "chain_id": "E",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "hbond",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      },
+      {
+       "distance": 2.94,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 343,
+        "chain_id": "E",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      }
+     ],
+     "ligand": {
+      "author_insertion_code": " ",
+      "author_residue_number": 601,
+      "chain_id": "E",
+      "chem_comp_id": "NAG"
+     }
+    }
+   ]
+  },
+  "status": 200
+ },
+ "7rpv/D/1001": {
+  "body": {
+   "7rpv": [
+    {
+     "interactions": [
+      {
+       "distance": 4.41,
+       "end": {
+        "atom_names": [
+         "CG2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 52,
+        "chain_id": "D",
+        "chem_comp_id": "THR"
+       },
+       "interaction_details": [
+        "hydrophobic"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C8"
+       ]
+      },
+      {
+       "distance": 2.42,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 53,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      },
+      {
+       "distance": 2.64,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 53,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C2"
+       ]
+      },
+      {
+       "distance": 1.47,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 53,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "covalent"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 2.67,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 53,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 3.3,
+       "end": {
+        "atom_names": [
+         "CB"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 53,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 2.97,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 53,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "N2"
+       ]
+      },
+      {
+       "distance": 3.82,
+       "end": {
+        "atom_names": [
+         "CB"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 53,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "hydrophobic"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C8"
+       ]
+      },
+      {
+       "distance": 3.68,
+       "end": {
+        "atom_names": [
+         "CG2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 55,
+        "chain_id": "D",
+        "chem_comp_id": "THR"
+       },
+       "interaction_details": [
+        "weak_hbond"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O6"
+       ]
+      },
+      {
+       "distance": 3.39,
+       "end": {
+        "atom_names": [
+         "OG1"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 55,
+        "chain_id": "D",
+        "chem_comp_id": "THR"
+       },
+       "interaction_details": [
+        "hbond",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      },
+      {
+       "distance": 2.84,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 58,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "hbond",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      },
+      {
+       "distance": 3.22,
+       "end": {
+        "atom_names": [
+         "NE2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 340,
+        "chain_id": "D",
+        "chem_comp_id": "GLN"
+       },
+       "interaction_details": [
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O7"
+       ]
+      }
+     ],
+     "ligand": {
+      "author_insertion_code": " ",
+      "author_residue_number": 1001,
+      "chain_id": "D",
+      "chem_comp_id": "NAG"
+     }
+    }
+   ]
+  },
+  "status": 200
+ },
+ "7rpv/D/1002": {
+  "body": {
+   "7rpv": [
+    {
+     "interactions": [
+      {
+       "distance": 3.44,
+       "end": {
+        "atom_names": [
+         "NZ"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 26,
+        "chain_id": "D",
+        "chem_comp_id": "LYS"
+       },
+       "interaction_details": [
+        "hbond",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      },
+      {
+       "distance": 2.53,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C2"
+       ]
+      },
+      {
+       "distance": 2.97,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "N2"
+       ]
+      },
+      {
+       "distance": 2.48,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 2.84,
+       "end": {
+        "atom_names": [
+         "OD1"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "weak_polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 2.36,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      },
+      {
+       "distance": 1.46,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "covalent"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 3.16,
+       "end": {
+        "atom_names": [
+         "OD1"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "N2"
+       ]
+      },
+      {
+       "distance": 3.29,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "N2"
+       ]
+      },
+      {
+       "distance": 3.4,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 90,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C2"
+       ]
+      }
+     ],
+     "ligand": {
+      "author_insertion_code": " ",
+      "author_residue_number": 1002,
+      "chain_id": "D",
+      "chem_comp_id": "NAG"
+     }
+    }
+   ]
+  },
+  "status": 200
+ },
+ "7rpv/D/1003": {
+  "body": {
+   "7rpv": [
+    {
+     "interactions": [
+      {
+       "distance": 2.39,
+       "end": {
+        "atom_names": [
+         "O"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 101,
+        "chain_id": "D",
+        "chem_comp_id": "GLN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "weak_polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C8"
+       ]
+      },
+      {
+       "distance": 3.3,
+       "end": {
+        "atom_names": [
+         "O"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 101,
+        "chain_id": "D",
+        "chem_comp_id": "GLN"
+       },
+       "interaction_details": [
+        "vdw",
+        "carbonyl"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C7"
+       ]
+      },
+      {
+       "distance": 3.37,
+       "end": {
+        "atom_names": [
+         "C"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 101,
+        "chain_id": "D",
+        "chem_comp_id": "GLN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C8"
+       ]
+      },
+      {
+       "distance": 4.2,
+       "end": {
+        "atom_names": [
+         "CB"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 101,
+        "chain_id": "D",
+        "chem_comp_id": "GLN"
+       },
+       "interaction_details": [
+        "hydrophobic"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C8"
+       ]
+      },
+      {
+       "distance": 3.83,
+       "end": {
+        "atom_names": [
+         "CA"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 102,
+        "chain_id": "D",
+        "chem_comp_id": "GLN"
+       },
+       "interaction_details": [
+        "weak_hbond"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O7"
+       ]
+      },
+      {
+       "distance": 2.43,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 103,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      },
+      {
+       "distance": 1.58,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 103,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "covalent"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 4.47,
+       "end": {
+        "atom_names": [
+         "CB"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 103,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "hydrophobic"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C8"
+       ]
+      },
+      {
+       "distance": 2.64,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 103,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 3.07,
+       "end": {
+        "atom_names": [
+         "CB"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 103,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 3.25,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 103,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C2"
+       ]
+      },
+      {
+       "distance": 3.14,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 103,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "N2"
+       ]
+      },
+      {
+       "distance": 2.01,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 103,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C2"
+       ]
+      },
+      {
+       "distance": 2.3,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 103,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "N2"
+       ]
+      },
+      {
+       "distance": 3.2,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 103,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C7"
+       ]
+      }
+     ],
+     "ligand": {
+      "author_insertion_code": " ",
+      "author_residue_number": 1003,
+      "chain_id": "D",
+      "chem_comp_id": "NAG"
+     }
+    }
+   ]
+  },
+  "status": 200
+ },
+ "7rpv/D/1004": {
+  "body": {
+   "7rpv": [
+    {
+     "interactions": [
+      {
+       "distance": 3.32,
+       "end": {
+        "atom_names": [
+         "CE"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 309,
+        "chain_id": "D",
+        "chem_comp_id": "LYS"
+       },
+       "interaction_details": [
+        "weak_polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O6"
+       ]
+      },
+      {
+       "distance": 3.4,
+       "end": {
+        "atom_names": [
+         "CE"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 309,
+        "chain_id": "D",
+        "chem_comp_id": "LYS"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C6"
+       ]
+      },
+      {
+       "distance": 2.78,
+       "end": {
+        "atom_names": [
+         "OD1"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 322,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "weak_polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 2.53,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 322,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C2"
+       ]
+      },
+      {
+       "distance": 2.07,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 322,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      },
+      {
+       "distance": 1.42,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 322,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "covalent"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 2.95,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 322,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      },
+      {
+       "distance": 2.41,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 322,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      }
+     ],
+     "ligand": {
+      "author_insertion_code": " ",
+      "author_residue_number": 1004,
+      "chain_id": "D",
+      "chem_comp_id": "NAG"
+     }
+    }
+   ]
+  },
+  "status": 200
+ },
+ "7rpv/D/1005": {
+  "body": {
+   "7rpv": [
+    {
+     "interactions": [
+      {
+       "distance": 4.42,
+       "end": {
+        "atom_names": [
+         "CE2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 285,
+        "chain_id": "D",
+        "chem_comp_id": "PHE"
+       },
+       "interaction_details": [
+        "hydrophobic"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C8"
+       ]
+      },
+      {
+       "distance": 3.52,
+       "end": {
+        "atom_names": [
+         "CZ"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 285,
+        "chain_id": "D",
+        "chem_comp_id": "PHE"
+       },
+       "interaction_details": [
+        "hydrophobic"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C8"
+       ]
+      },
+      {
+       "distance": 4.21,
+       "end": {
+        "atom_names": [
+         "CE1"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 285,
+        "chain_id": "D",
+        "chem_comp_id": "PHE"
+       },
+       "interaction_details": [
+        "hydrophobic"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C8"
+       ]
+      },
+      {
+       "distance": 2.46,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 432,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C2"
+       ]
+      },
+      {
+       "distance": 2.47,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 432,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 1.45,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 432,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "covalent"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 3.3,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 432,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      },
+      {
+       "distance": 2.27,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 432,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      },
+      {
+       "distance": 3.13,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 432,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw",
+        "hbond",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O3"
+       ]
+      },
+      {
+       "distance": 3.29,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 432,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C3"
+       ]
+      },
+      {
+       "distance": 2.83,
+       "end": {
+        "atom_names": [
+         "OD1"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 432,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "weak_polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 3.22,
+       "end": {
+        "atom_names": [
+         "NE1"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 594,
+        "chain_id": "D",
+        "chem_comp_id": "TRP"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C8"
+       ]
+      },
+      {
+       "distance": 3.44,
+       "end": {
+        "atom_names": [
+         "CD1"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 594,
+        "chain_id": "D",
+        "chem_comp_id": "TRP"
+       },
+       "interaction_details": [
+        "vdw"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C8"
+       ]
+      }
+     ],
+     "ligand": {
+      "author_insertion_code": " ",
+      "author_residue_number": 1005,
+      "chain_id": "D",
+      "chem_comp_id": "NAG"
+     }
+    }
+   ]
+  },
+  "status": 200
+ },
+ "7rpv/D/1006": {
+  "body": {
+   "7rpv": [
+    {
+     "interactions": [
+      {
+       "distance": 3.45,
+       "end": {
+        "atom_names": [
+         "OG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 420,
+        "chain_id": "D",
+        "chem_comp_id": "SER"
+       },
+       "interaction_details": [
+        "weak_polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C3"
+       ]
+      },
+      {
+       "distance": 3.13,
+       "end": {
+        "atom_names": [
+         "OG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 420,
+        "chain_id": "D",
+        "chem_comp_id": "SER"
+       },
+       "interaction_details": [
+        "vdw",
+        "hbond",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "N2"
+       ]
+      },
+      {
+       "distance": 2.96,
+       "end": {
+        "atom_names": [
+         "OG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 420,
+        "chain_id": "D",
+        "chem_comp_id": "SER"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O3"
+       ]
+      },
+      {
+       "distance": 3.08,
+       "end": {
+        "atom_names": [
+         "OD2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 543,
+        "chain_id": "D",
+        "chem_comp_id": "ASP"
+       },
+       "interaction_details": [
+        "vdw"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O7"
+       ]
+      },
+      {
+       "distance": 5.68,
+       "end": {
+        "atom_names": [
+         "C",
+         "CA",
+         "N",
+         "O"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 545,
+        "chain_id": "D",
+        "chem_comp_id": "SER"
+       },
+       "interaction_details": [
+        "AMIDEAMIDE"
+       ],
+       "interaction_type": "group-group",
+       "ligand_atoms": [
+        "C7",
+        "C8",
+        "N2",
+        "O7"
+       ]
+      },
+      {
+       "distance": 2.57,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 546,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C2"
+       ]
+      },
+      {
+       "distance": 3.11,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 546,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "N2"
+       ]
+      },
+      {
+       "distance": 2.72,
+       "end": {
+        "atom_names": [
+         "OD1"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 546,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "weak_polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 2.4,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 546,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 1.44,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 546,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "covalent"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "C1"
+       ]
+      },
+      {
+       "distance": 3.05,
+       "end": {
+        "atom_names": [
+         "CG"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 546,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      },
+      {
+       "distance": 2.25,
+       "end": {
+        "atom_names": [
+         "ND2"
+        ],
+        "author_insertion_code": " ",
+        "author_residue_number": 546,
+        "chain_id": "D",
+        "chem_comp_id": "ASN"
+       },
+       "interaction_details": [
+        "vdw_clash",
+        "polar"
+       ],
+       "interaction_type": "atom-atom",
+       "ligand_atoms": [
+        "O5"
+       ]
+      }
+     ],
+     "ligand": {
+      "author_insertion_code": " ",
+      "author_residue_number": 1006,
+      "chain_id": "D",
+      "chem_comp_id": "NAG"
+     }
+    }
+   ]
+  },
+  "status": 200
+ }
+}

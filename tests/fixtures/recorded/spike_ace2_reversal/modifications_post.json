@@ -1,0 +1,8 @@
+{
+ "body": {
+  "message": "Requested endpoint does not contain any data"
+ },
+ "request_body": "6m0j,7p19,7rpv",
+ "status": 404,
+ "url": "https://www.ebi.ac.uk/pdbe/api/v2/pdb/entry/modified_AA_or_NA"
+}

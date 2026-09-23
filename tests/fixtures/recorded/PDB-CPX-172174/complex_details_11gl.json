@@ -1,0 +1,27 @@
+{
+ "body": {
+  "11gl": [
+   {
+    "assemblies": [
+     {
+      "assembly_id": 1,
+      "preferred_assembly": true
+     }
+    ],
+    "complex_portal_id": "CPX-2128",
+    "name": "Sting complex",
+    "participants": [
+     {
+      "accession": "Q3TBT3",
+      "stoichiometry": 2
+     }
+    ],
+    "pdb_complex_id": "PDB-CPX-172174",
+    "subcomplexes": [],
+    "supercomplexes": []
+   }
+  ]
+ },
+ "status": 200,
+ "url": "https://www.ebi.ac.uk/pdbe/api/v2/complex/details/11gl?id_type=pdb_id"
+}

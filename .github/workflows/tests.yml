@@ -1,0 +1,37 @@
+name: tests
+
+# Regression guard: run the offline pytest suite on every change.
+#
+# The suite needs no network access. The STING, Spike/ACE2 and notebook smoke
+# tests are served entirely from the frozen fixtures under
+# tests/fixtures/recorded/, and tests/conftest.py blocks any stray HTTP request.
+# No secrets or API credentials are required or referenced.
+#
+# Pushes are restricted to main so that work on a branch is checked once, by the
+# pull_request event, rather than twice.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Run the offline test suite
+        run: pytest -v

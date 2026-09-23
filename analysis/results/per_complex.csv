@@ -1,0 +1,29 @@
+complex_id,name,n_interfaces,n_comparisons,n_swapped_gt_direct,n_delta_gt_0.2,n_delta_gt_0.5,max_delta,median_direct
+PDB-CPX-172174,Sting complex,14,91,12,0,0,0.1528,0.0833
+PDB-CPX-130029,Triosephosphate isomerase,17,136,2,0,0,0.0717,0.8846
+PDB-CPX-138703,Peptide antibiotic transporter SbmA,4,6,0,0,0,0.0,0.3906
+PDB-CPX-148643,NAD(P)H-dependent nitroreductase NfsB,41,820,89,0,0,0.1088,0.8182
+PDB-CPX-156367,Aromatic-amino-acid aminotransferase,12,66,13,0,0,0.1282,0.775
+PDB-CPX-146587,Chalcone synthase 2,17,136,3,0,0,0.0316,0.902
+PDB-CPX-187754,HTH-type transcriptional regulator TtgR,13,78,41,0,0,0.1832,0.6222
+PDB-CPX-129185,Coagulation factor XIII A chain,8,28,6,0,0,0.1288,0.5902499999999999
+PDB-CPX-181521,"Alpha-1,2-mannosidase",8,28,6,0,0,0.1111,0.8947
+PDB-CPX-150984,Bis(5'-adenosyl)-triphosphatase,10,45,1,0,0,0.0947,0.6087
+PDB-CPX-188752,Ubiquitin-like modifier-activating enzyme 5,10,45,8,0,0,0.1526,0.7714
+PDB-CPX-127157,Phosphite dehydrogenase,21,210,30,1,0,0.2037,0.7308
+PDB-CPX-118634,HTH tetR-type domain-containing protein,8,28,5,5,2,1.0,0.125
+PDB-CPX-172325,16.9 kDa class I heat shock protein 2,24,276,0,0,0,-0.375,1.0
+PDB-CPX-151132,Anthranilate phosphoribosyltransferase,11,55,11,10,0,0.5,0.5
+PDB-CPX-172479,Protein mono-ADP-ribosyltransferase PARP15,51,1275,21,2,0,0.2105,0.8824
+PDB-CPX-139495,Replication termination protein,6,15,0,0,0,0.0,0.5714
+PDB-CPX-120378,Uridine phosphorylase A,9,36,8,0,0,0.0712,0.8
+PDB-CPX-168949,C-terminal-binding protein 1,8,28,0,0,0,0.0,0.5789
+PDB-CPX-228133,Alpha/beta hydrolase domain-containing protein,15,105,0,0,0,0.0,1.0
+PDB-CPX-152431,Motility protein B,17,136,11,11,3,1.0,0.0
+PDB-CPX-127113,HTH-type transcriptional regulator BenM,14,91,6,0,0,0.1545,0.0
+PDB-CPX-138209,Tetracycline repressor protein class D,42,861,3,1,0,0.3297,0.4444
+PDB-CPX-109078,Chalcone synthase 1,8,28,9,0,0,0.0659,0.88295
+PDB-CPX-145058,EmrE multidrug transporter complex,2,1,0,0,0,0.0,0.0
+PDB-CPX-103731,Superoxide dismutase,13,78,0,0,0,0.0,0.8
+PDB-CPX-184823,Farnesyl diphosphate synthase,59,1711,0,0,0,0.0,0.7857
+PDB-CPX-189315,N-acetyltransferase domain-containing protein,12,66,0,0,0,0.0,1.0
