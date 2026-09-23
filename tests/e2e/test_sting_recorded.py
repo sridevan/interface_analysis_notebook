@@ -1,4 +1,4 @@
-"""Scientific regression: the STING homodimer (`11gl` -> PDB-CPX-172174) on frozen data.
+"""Scientific regression: the STING homodimer example `11gl` on frozen data.
 
 Runs the notebook's complete workflow on the recorded PDBe responses in
 `tests/fixtures/recorded/PDB-CPX-172174/` (captured 2026-09-23) and checks that
@@ -16,6 +16,17 @@ depend on orientation handling.
 
 Cluster ids from `fcluster` are arbitrary; only relationships and size
 multisets are asserted.
+
+The PDB entry id `11gl` is the stable starting identifier. The complex id it
+resolves to is a data value that PDBe-KB can reassign between releases, so the
+expected value is read from the fixture's own metadata rather than written into
+the assertions. At capture time it was `PDB-CPX-172174`, which is also the
+fixture directory name.
+
+Every exact count asserted below (14 interfaces, 12 entries, the bond-type
+totals, the state sizes) is a property of the frozen capture, not of the live
+complex, which grows as structures are deposited. That is the point of freezing
+it: these numbers must not change unless our code changes.
 """
 
 from __future__ import annotations
@@ -52,13 +63,14 @@ def test_sting_recorded_workflow_builds_expected_interface_states(sting):
     # (2 lookups, 1 interface list, 2 POSTs, 12 bound-molecule GETs, 15 ligand GETs).
     assert len(run.recorded.urls) == run.recorded.metadata["n_requests_recorded"] == 32
 
-    # Identifier resolution, dimer check and partner roles.
-    assert run.complex_id == "PDB-CPX-172174"
+    # Identifier resolution, dimer check and partner roles. The expected complex
+    # id comes from the recorded lookup, not from a literal in this test.
+    assert run.complex_id == run.recorded.metadata["complex_id"]
     assert run.details["oligomeric_state"] == "Homodimer"
     assert run.details["total_chains"] == 2
     assert set(run.partner_map) == {(STING, 1), (STING, 2)}
 
-    # Interface cohort: fixture-specific exact counts.
+    # Interface cohort. Exact counts are properties of the frozen fixture.
     assert run.selection.n_interfaces_before == 14
     assert len(run.selection.interfaces) == 14
     assert dict(run.selection.dropped_by_reason) == {}
@@ -189,7 +201,7 @@ def test_sting_recorded_export_is_consistent(sting):
     run = sting
     assert run.output_path.exists()
     written = json.loads(run.output_path.read_text())
-    assert written["metadata"]["complex_id"] == "PDB-CPX-172174"
+    assert written["metadata"]["complex_id"] == run.complex_id
     assert written["metadata"]["oligomeric_state"] == "Homodimer"
     assert written["metadata"]["n_interfaces"] == 14
     assert written["residue_frequencies"] == run.export["residue_frequencies"]

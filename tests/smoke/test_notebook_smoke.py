@@ -45,7 +45,13 @@ from nbclient import NotebookClient
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 NOTEBOOK = REPO / "notebook.ipynb"
-FIXTURE = "PDB-CPX-172174"
+# Fixture *directory* name. It happens to be the complex id recorded at capture
+# time, but the complex id the notebook resolves to is read from the fixture
+# metadata below, never assumed from this name.
+FIXTURE_DIR = "PDB-CPX-172174"
+FIXTURE_METADATA = json.loads(
+    (REPO / "tests" / "fixtures" / "recorded" / FIXTURE_DIR / "metadata.json").read_text()
+)
 KERNEL_TIMEOUT_S = 300
 
 SETUP_CELL = """
@@ -90,12 +96,17 @@ print("SMOKE_SUMMARY=" + _json.dumps({
 
 @pytest.fixture(scope="module")
 def executed_notebook(tmp_path_factory):
-    """Execute the real notebook once in a kernel; return (summary, output_dir)."""
+    """Execute the real notebook once in a kernel; return (summary, output_dir, ...)."""
     output_dir = tmp_path_factory.mktemp("notebook_export")
+    # The notebook's default output_dir is `interface_frequencies/` in the repo, and
+    # a developer who has run the notebook normally will already have it. Record
+    # whether it exists so the test can assert this run did not create or touch it,
+    # rather than asserting it is absent.
+    repo_export_existed = (REPO / "interface_frequencies").exists()
     nb = nbformat.read(NOTEBOOK, as_version=4)
 
     cells = [nbformat.v4.new_code_cell(SETUP_CELL.format(
-        repo=str(REPO), helpers=str(REPO / "tests" / "e2e"), fixture=FIXTURE))]
+        repo=str(REPO), helpers=str(REPO / "tests" / "e2e"), fixture=FIXTURE_DIR))]
     n_notebook_cells = 0
     for cell in nb.cells:
         if cell.cell_type != "code":
@@ -123,20 +134,21 @@ def executed_notebook(tmp_path_factory):
                 summary = json.loads(text.split("SMOKE_SUMMARY=", 1)[1].strip().splitlines()[0])
     assert summary is not None, "notebook ran but produced no summary output"
     summary["n_notebook_code_cells"] = n_notebook_cells
-    return summary, output_dir
+    return summary, output_dir, repo_export_existed
 
 
 def test_notebook_analysis_path_executes_on_recorded_data(executed_notebook):
-    summary, output_dir = executed_notebook
+    summary, output_dir, repo_export_existed = executed_notebook
 
     # Every code cell of the notebook ran; nbclient would have raised otherwise.
     assert summary["n_notebook_code_cells"] == 18
 
-    # Offline: every request was served by the recorded router.
+    # Offline: every request was served by the recorded router. The count is a
+    # property of the frozen STING fixture, not of the live complex.
     assert summary["requests_served"] == 32
 
     # The principal variables later cells depend on exist and are self-consistent.
-    assert summary["complex_id"] == FIXTURE
+    assert summary["complex_id"] == FIXTURE_METADATA["complex_id"]
     assert summary["n_comparable"] > 0
     assert summary["n_all_records"] == summary["n_comparable"] + summary["n_excluded"]
     assert summary["sim_rows"] == summary["sim_cols"] == summary["n_comparable"]
@@ -149,5 +161,6 @@ def test_notebook_analysis_path_executes_on_recorded_data(executed_notebook):
 
     # Phase 7 export completed, into the temporary directory rather than the repo.
     assert summary["n_residue_freqs"] > 0 and summary["n_contact_freqs"] > 0
-    assert (output_dir / f"{FIXTURE}.json").is_file()
-    assert not (REPO / "interface_frequencies").exists()
+    assert (output_dir / f"{summary['complex_id']}.json").is_file()
+    # The run wrote nothing into the repository's default export directory.
+    assert (REPO / "interface_frequencies").exists() == repo_export_existed

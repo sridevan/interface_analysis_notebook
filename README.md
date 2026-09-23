@@ -80,16 +80,22 @@ complex before interpreting any comparison.
 
 ## Working example
 
-`11gl` (STING, complex `PDB-CPX-172174`, Complex Portal `CPX-2128`): a homodimer of 14
-interfaces from 12 entries, all X-ray at 1.29 to 2.75 Å, separating into four states of 9, 3,
-1 and 1, with ligands in three of them. Small enough to read end to end while still
-exercising the clustering, rewiring and QC output. Edit the `Config` instance in the first
+`11gl` (STING, Complex Portal `CPX-2128`; resolved to complex `PDB-CPX-172174` at the time
+of writing): a homodimer small enough to read end to end while still exercising the
+clustering, rewiring and QC output. When last run it gave 14 interfaces from 12 entries, all
+X-ray at 1.29 to 2.75 Å, separating into four states of 9, 3, 1 and 1, with ligands in three
+of them. Those figures describe the structures deposited at that point and grow as new ones
+are released; the workflow reports whatever PDBe currently returns. Edit the `Config` instance in the first
 cell of the notebook to target a different complex.
 
-Other useful cases: `1spq` (triosephosphate isomerase, `PDB-CPX-130029`) is a homodimer whose
-interface is invariant, forming a single cluster at every cut; `6m0j` (Spike RBD with ACE2,
-`PDB-CPX-140195`) is a 130-interface heterodimer; `PDB-CPX-130306` (KRAS with RAF1) is a
+Other useful cases: `1spq` (triosephosphate isomerase) is a homodimer whose interface is
+invariant, forming a single cluster at every cut; `6m0j` (Spike RBD with ACE2) is a
+much larger heterodimer; KRAS with RAF1 (`PDB-CPX-130306` at the time of writing) is a
 smaller heterodimer.
+
+Give the workflow a PDB entry id wherever possible. Complex ids are resolved from PDBe and
+can be reassigned between PDBe-KB Complexes releases, so they are data values rather than
+permanent names for a complex.
 
 ## Configuration
 
@@ -105,8 +111,9 @@ field in the `pdbe_interfaces.config.Config` docstring. The main ones:
 - `conservation_threshold`: fraction of interfaces at which a residue or contact counts as conserved.
 - `output_dir`: destination for the Phase 7 JSON export. Defaults to `interface_frequencies/`; `None` writes to the working directory.
 
-Retrieval is the slow step and runs concurrently: on the 114-entry Spike RBD with ACE2
-complex the ligand fetches take 4.5 s with the default 8 workers, against 32 s sequentially.
+Retrieval is the slow step and runs concurrently: measured on the Spike RBD with ACE2
+complex at 114 entries, the ligand fetches took 4.5 s with the default 8 workers against
+32 s sequentially. Both figures scale with however many entries the complex has when run.
 
 ## Project layout
 

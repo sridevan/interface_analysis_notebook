@@ -186,12 +186,17 @@ def run_workflow(identifier: str, fixture_dir: str, output_dir: Path) -> Workflo
 
 @pytest.fixture(scope="module")
 def sting(tmp_path_factory) -> WorkflowRun:
-    """The STING homodimer run (`11gl` -> PDB-CPX-172174) on the frozen fixture."""
+    """The STING homodimer run started from entry `11gl`, on the frozen fixture.
+
+    The second argument is the fixture *directory* name, which happens to be the
+    complex id recorded at capture time. The complex id the workflow resolves to
+    is read back from the fixture metadata, never assumed.
+    """
     return run_workflow("11gl", "PDB-CPX-172174", tmp_path_factory.mktemp("sting"))
 
 
 @pytest.fixture(scope="module")
 def spike_ace2(tmp_path_factory) -> WorkflowRun:
-    """The Spike RBD-ACE2 heterodimer run (`6m0j` -> PDB-CPX-140195), scoped to the
+    """The Spike RBD-ACE2 heterodimer run started from entry `6m0j`, scoped to the
     five interface instances selected to exercise partner-order normalisation."""
     return run_workflow("6m0j", "spike_ace2_reversal", tmp_path_factory.mktemp("spike"))

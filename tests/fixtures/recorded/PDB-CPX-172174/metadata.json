@@ -1,6 +1,7 @@
 {
  "captured_on": "2026-09-23",
  "complex_id": "PDB-CPX-172174",
+ "complex_id_note": "Complex id resolved from PDB entry 11gl at capture time (2026-09-23). PDBe-KB Complexes can reassign complex ids between releases, so this is a recorded data value, not a permanent mapping. The PDB entry id is the stable starting identifier.",
  "config": {
   "drop_carbohydrate_polymers": false,
   "ligand_blocklist": [

@@ -2,9 +2,12 @@
 
 Runs the notebook's workflow offline on the frozen fixture in
 `tests/fixtures/recorded/spike_ace2_reversal/` (captured 2026-09-23), a
-deliberately small subset of `PDB-CPX-140195`: five interface instances from
-three entries, chosen so that the same biological interface is reported by PISA
-in both partner orderings.
+deliberately small subset of the complex `6m0j` resolves to: five interface
+instances from three entries, chosen so that the same biological interface is
+reported by PISA in both partner orderings. The complex id recorded at capture
+time was `PDB-CPX-140195`; it is read from the fixture metadata rather than
+asserted as a literal, because PDBe-KB can reassign complex ids between
+releases.
 
 STING (tranche 2A) tested the full scientific state-analysis path on a
 homodimer, where the partner-consistency check has nothing to act on. This
@@ -22,6 +25,11 @@ not from the workflow's own output:
     6m0j  chain A = ACE2, chain E = Spike
     7p19  chains A, B = ACE2; chains C, E = Spike
     7rpv  chains A-D = ACE2;  chains E-H = Spike
+
+Exact counts below (five instances, the request count, the shared-contact total
+and the similarity values) are properties of the frozen capture, not of the live
+complex, which had far more instances at capture time and grows as structures
+are deposited.
 
 This is not a clustering study; the Spike/ACE2 conformational landscape is out
 of scope here.
@@ -68,7 +76,7 @@ def test_spike_ace2_recorded_normalises_partner_orientation(spike_ace2, raw_reco
 
     # Fixture integrity: every request answered from the frozen capture.
     assert len(run.recorded.urls) == run.recorded.metadata["n_requests_recorded"] == 22
-    assert run.complex_id == "PDB-CPX-140195"
+    assert run.complex_id == run.recorded.metadata["complex_id"]
     assert run.details["oligomeric_state"] == "Heterodimer"
 
     # Canonical biological roles, asserted rather than assumed.
