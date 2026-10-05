@@ -26,6 +26,7 @@ import os
 from collections import Counter
 
 import ipywidgets as widgets
+import pandas as pd
 from IPython.display import clear_output, display
 
 from pdbe_interfaces import outputs, plots
@@ -40,12 +41,12 @@ def residue_pair_explorer(
     top_n: int = 15,
     interactive: bool | None = None,
 ) -> None:
-    """Display the residue-pair table and heatmap with a cluster filter.
+    """Display the residue-pair table and heatmap with an interaction-group filter.
 
-    The dropdown selects the whole dataset or a single interface interaction
-    state; the slider caps the table rows and the heatmap dimension on each
-    side. Selecting one state shows the residue-pair composition of that state
-    alone.
+    The dropdown selects the whole dataset or a single interaction group
+    (cluster); the slider caps the table rows and the heatmap dimension on
+    each side. Selecting one group shows the residue-pair composition of that
+    group alone, with the group size as the denominator.
 
     `interactive=False` renders the whole-dataset view once, without widgets.
     Use it for headless execution: this widget layout hangs `nbconvert
@@ -65,19 +66,19 @@ def residue_pair_explorer(
     assignment = cluster_result.flat_assignment
     sizes = Counter(assignment.tolist())
 
-    options = [("All clusters", "all")]
+    options = [("All", "all")]
     options += [
-        (f"Cluster {cid} (n={size})", str(cid))
+        (f"Interaction group {cid} (n={size})", str(cid))
         for cid, size in sorted(sizes.items(), key=lambda kv: (-kv[1], kv[0]))
     ]
 
     cluster_dropdown = widgets.Dropdown(
-        options=options, value="all", description="Filter:",
+        options=options, value="all", description="Interaction group:",
         style={"description_width": "initial"},
     )
     top_n_slider = widgets.IntSlider(
         value=top_n, min=5, max=40, step=5,
-        description="Top N rows / heatmap size",
+        description="Number of residue pairs",
         style={"description_width": "initial"},
         layout=widgets.Layout(width="500px"),
     )
@@ -87,10 +88,10 @@ def residue_pair_explorer(
     def _subset() -> tuple[list[InterfaceRecord], str]:
         selection = cluster_dropdown.value
         if selection == "all":
-            return records, f"all {len(records)} interfaces"
+            return records, f"across {len(records)} interfaces"
         cid = int(selection)
         members = [r for i, r in enumerate(records) if assignment[i] == cid]
-        return members, f"cluster {cid} only ({len(members)} interfaces)"
+        return members, f"in interaction group {cid} (n={len(members)})"
 
     def _render(_change=None) -> None:
         subset, scope = _subset()
@@ -104,8 +105,8 @@ def residue_pair_explorer(
             if freq is None:
                 print("No interfaces in this selection.")
             else:
-                print(f"Top {n} residue pairs ({scope})")
-                display(freq["pairs"][["contact", "n_interfaces", "fraction"]].head(n))
+                print(f"Top {n} residue pairs {scope}")
+                display(_pairs_view(freq, n))
         with plot_out:
             clear_output(wait=True)
             if freq is not None:
@@ -120,6 +121,16 @@ def residue_pair_explorer(
     _render()
 
 
+def _pairs_view(freq: dict, top_n: int) -> pd.DataFrame:
+    """Top residue pairs with count and percentage of the interfaces in scope."""
+    pairs = freq["pairs"].head(top_n)
+    total = freq["n_interfaces"]
+    return pd.DataFrame({
+        "Residue pair": pairs["contact"],
+        "Observed in interfaces": [f"{k}/{total} ({k / total:.0%})" for k in pairs["n_interfaces"]],
+    })
+
+
 def _render_static(
     records: list[InterfaceRecord],
     partner_map: dict[tuple[str, int], str] | None,
@@ -129,9 +140,9 @@ def _render_static(
     if not records:
         print("No interfaces to summarise.")
         return
-    scope = f"all {len(records)} interfaces"
+    scope = f"across {len(records)} interfaces"
     freq = outputs.interface_frequency_summary(records, partner_map=partner_map)
-    print(f"Top {top_n} residue pairs ({scope}); widgets disabled, showing the "
+    print(f"Top {top_n} residue pairs {scope}; widgets disabled, showing the "
           f"whole dataset. Set PDBE_INTERFACES_STATIC=0 for the interactive view.")
-    display(freq["pairs"][["contact", "n_interfaces", "fraction"]].head(top_n))
+    display(_pairs_view(freq, top_n))
     plots.pair_frequency_heatmap(freq, top_n, scope)

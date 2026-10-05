@@ -671,7 +671,7 @@ Approximately half of the reported contacts were reproducible from labels carryi
 - `pair_matrix`, `partner_1_labels`, `partner_2_labels`, 2D numpy matrix (partner-1 residues × partner-2 residues) with per-cell counts, plus axis labels. Suitable for a frequency heatmap.
 
 The notebook wraps these outputs in an **interactive widget** (`ipywidgets.Dropdown` + `IntSlider`):
-- Cluster dropdown: `"All clusters"` (full dataset) or a specific cluster ID. Re-runs `interface_frequency_summary` on the cluster's member subset and re-renders tables + heatmap on change.
+- Interaction-group dropdown: `"All"` (full dataset) or a specific cluster ID. Re-runs `interface_frequency_summary` on the cluster's member subset and re-renders tables + heatmap on change.
 - Top-N slider: caps rows displayed in each table and the heatmap's matrix dimension (default 15, range 5–40).
 
 This gives an "all interfaces vs cluster X" comparison without re-running the workflow. Cell values in the heatmap are fractions in `[0, 1]`; 1.0 means every interface in the (filtered) selection contains that residue-pair contact.

@@ -114,7 +114,8 @@ def pair_frequency_heatmap(freq: dict, top_n: int, scope: str) -> None:
     """Residue-pair frequency heatmap, partner 1 residues by partner 2 residues.
 
     `freq` is the dict returned by `outputs.interface_frequency_summary`. Cell
-    values are the fraction of interfaces in scope containing that pair. Each
+    values are the fraction of interfaces in scope containing that pair, and
+    `scope` completes the title ("across 14 interfaces"). Each
     axis shows the top `top_n` residues by frequency, ordered by ascending
     UniProt residue number so positions read in sequence order.
     """
@@ -139,11 +140,11 @@ def pair_frequency_heatmap(freq: dict, top_n: int, scope: str) -> None:
         xticklabels=[p2_lab[i] for i in p2_idx],
         yticklabels=[p1_lab[i] for i in p1_idx],
         vmin=0.0, vmax=1.0,
-        cbar_kws={"label": f"fraction of {n_int}"},
+        cbar_kws={"label": "Interface frequency"},
         linewidths=0.3, linecolor="white",
     )
     ax.set_xlabel("Partner 2 residue")
     ax.set_ylabel("Partner 1 residue")
-    ax.set_title(f"Top {p1_show} by {p2_show} pairs, {scope}")
+    ax.set_title(f"Residue-pair frequency {scope}")
     plt.tight_layout()
     plt.show()
