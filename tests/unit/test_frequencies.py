@@ -178,6 +178,93 @@ def test_differential_contact_table_is_a_view_of_the_numeric_table(clustered):
     assert table.equals(before)   # the numeric table is not modified
 
 
+def test_distinct_fingerprints_are_counted_per_cluster():
+    # Cluster 1: two identical fingerprints and one that differs by a contact.
+    records = [
+        _record("1aaa", [(1, 1, HB), (2, 2, HB)]),
+        _record("2bbb", [(1, 1, HB), (2, 2, HB)]),
+        _record("3ccc", [(1, 1, HB), (2, 2, HB), (4, 4, HB)]),
+        _record("4ddd", [(1, 1, HB), (3, 3, SB)]),
+        # Same residue pair as 4ddd's second contact, different bond type: a
+        # different typed fingerprint, as the clustering sees it.
+        _record("5eee", [(1, 1, HB), (3, 3, HB)]),
+    ]
+    assignment = np.array([1, 1, 1, 2, 2])
+    result = ClusterResult(linkage=np.empty((0, 4)), flat_assignment=assignment, distance_cut=0.6)
+    report = outputs.cluster_interpretation_report(records, result, outputs.AnnotationOverlap())
+    by_id = report.set_index("cluster_id")
+
+    assert (by_id.loc[1, "cluster_size"], by_id.loc[1, "n_distinct_fingerprints"]) == (3, 2)
+    assert (by_id.loc[2, "cluster_size"], by_id.loc[2, "n_distinct_fingerprints"]) == (2, 2)
+    # Reporting the count leaves the assignment it was given untouched.
+    assert result.flat_assignment.tolist() == [1, 1, 1, 2, 2]
+    assert by_id.loc[1, "member_interfaces"] == "1aaa_1_1, 2bbb_1_1, 3ccc_1_1"
+
+
+def test_identical_fingerprints_count_once(clustered):
+    records, result = clustered
+    report = outputs.cluster_interpretation_report(records, result, outputs.AnnotationOverlap())
+    assert report.n_distinct_fingerprints.tolist() == [1, 1]
+
+
+# --- partner names ------------------------------------------------------------
+
+# The complex record lists P2 first, the interface data lists P1 first.
+HETERO_REVERSED = {(P2, 1): "KinaseB", (P1, 2): "CyclinA"}
+HETERO_ALIGNED = {(P1, 1): "CyclinA", (P2, 2): "KinaseB"}
+HOMO = {(P1, 1): "Sting (role 1)", (P1, 2): "Sting (role 2)"}
+
+
+@pytest.mark.parametrize("partner_map", [HETERO_REVERSED, HETERO_ALIGNED],
+                         ids=["participant-order-reversed", "participant-order-aligned"])
+def test_heterodimer_names_do_not_depend_on_participant_order(clustered, partner_map):
+    records, result = clustered
+
+    table = outputs.compare_cluster_contacts(records, result, cluster_a=1, cluster_b=2,
+                                             partner_map=partner_map)
+    assert "CyclinA:A2-KinaseB:G2 hydrogen_bond" in set(table.contact)
+    assert "CyclinA:A2–KinaseB:G2 · H-bond" in set(outputs.differential_contact_table(table).Contact)
+
+    structure = outputs.build_structure_table(records, result, outputs.AnnotationOverlap(), partner_map)
+    assert set(structure.partner_1) == {"CyclinA"} and set(structure.partner_2) == {"KinaseB"}
+
+    freq = outputs.interface_frequency_summary(records, partner_map=partner_map)
+    assert "CyclinA:A1 – KinaseB:G1" in set(freq["pairs"].contact)
+
+    report = outputs.cluster_interpretation_report(records, result, outputs.AnnotationOverlap(),
+                                                   partner_map=partner_map)
+    assert "CyclinA:A1-KinaseB:G1 hydrogen_bond" in report.core_contacts.iloc[0]
+
+
+def test_partner_metadata_lists_each_heterodimer_partner_once(clustered):
+    records, _ = clustered
+    meta = outputs._build_partner_metadata(records, HETERO_REVERSED, None)
+    assert {key: value["label"] for key, value in meta.items()} == {
+        (P1, 1): "CyclinA", (P2, 2): "KinaseB",
+    }
+
+
+def test_homodimer_names_still_use_the_role():
+    def homo_record(pdb_id, pairs):
+        rec = InterfaceRecord(pdb_id=pdb_id, assembly_id="1", interface_id=1, interface_info={},
+                              unp_accession_1=P1, unp_accession_2=P1)
+        for pos1, pos2, bond in pairs:
+            rec.uniprot_pairs.add(((P1, pos1, 1), (P1, pos2, 2), bond))
+            rec.residue_identity[(P1, pos1, 1)] = "A"
+            rec.residue_identity[(P1, pos2, 2)] = "G"
+        return rec
+
+    records = [homo_record("1aaa", [(1, 2, HB)]), homo_record("2bbb", [(1, 2, HB)])]
+    result = ClusterResult(linkage=np.empty((0, 4)), flat_assignment=np.array([1, 1]), distance_cut=0.6)
+    structure = outputs.build_structure_table(records, result, outputs.AnnotationOverlap(), HOMO)
+    assert set(structure.partner_1) == {"Sting (role 1)"}
+    assert set(structure.partner_2) == {"Sting (role 2)"}
+    freq = outputs.interface_frequency_summary(records, partner_map=HOMO)
+    assert set(freq["pairs"].contact) == {"Sting:A1 – Sting:G2"}
+    meta = outputs._build_partner_metadata(records, HOMO, None)
+    assert sorted(meta) == [(P1, 1), (P1, 2)]
+
+
 def test_rewiring_labels_from_cluster_fractions(clustered):
     records, result = clustered
     table = outputs.compare_cluster_contacts(records, result, cluster_a=1, cluster_b=2)

@@ -164,8 +164,8 @@ def build_structure_table(
     metadata = assembly_metadata or {}
     for i, r in enumerate(records):
         info = r.interface_info
-        partner_1 = partner_map.get((r.unp_accession_1, 1), r.unp_accession_1 or "?")
-        partner_2 = partner_map.get((r.unp_accession_2, 2), r.unp_accession_2 or "?")
+        partner_1 = _partner_name(partner_map, r.unp_accession_1, 1) or "?"
+        partner_2 = _partner_name(partner_map, r.unp_accession_2, 2) or "?"
         cid = (
             int(cluster_result.flat_assignment[i])
             if i < len(cluster_result.flat_assignment)
@@ -412,7 +412,9 @@ def cluster_interpretation_report(
 
     `cluster_size` counts interface instances and `member_interfaces` lists
     them as `<pdb_id>_<assembly_id>_<interface_id>`; `n_pdb_entries` is the
-    number of distinct PDB entries they come from.
+    number of distinct PDB entries they come from, and `n_distinct_fingerprints`
+    the number of different typed contact fingerprints among them. Members of
+    a cluster are similar at the cut, not necessarily identical.
 
     Each cluster is treated as a candidate interface interaction state. For
     each cluster the report surfaces:
@@ -509,6 +511,8 @@ def cluster_interpretation_report(
             for r in sorted(members, key=lambda r: r.key)
         ]
         n_pdb_entries = len({r.pdb_id for r in members})
+        # Exact typed fingerprints, the representation the clustering compares.
+        n_distinct_fingerprints = len({frozenset(r.uniprot_pairs) for r in members})
 
         methods = Counter()
         resolutions: list[float] = []
@@ -613,6 +617,7 @@ def cluster_interpretation_report(
             "cluster_id": cid,
             "cluster_size": len(members),
             "n_pdb_entries": n_pdb_entries,
+            "n_distinct_fingerprints": n_distinct_fingerprints,
             "member_interfaces": ", ".join(member_interfaces),
             "experimental_methods": methods_str,
             "resolution_range": resolution_str,
@@ -991,8 +996,24 @@ def compare_clusters(
     return df
 
 
+def _partner_name(partner_map: dict, unp_acc: str, role: int) -> str:
+    """Display name of one partner, as stored in `partner_map`.
+
+    `build_partner_map` numbers the roles in the order the complex record lists
+    its participants, while an interface record takes its roles from the
+    interface data, and the two orders can differ. In a heterodimer the
+    accession alone identifies the partner, so the name is found by accession
+    whatever role it was filed under. In a homodimer both roles share the
+    accession and only the role tells them apart, so the role is used.
+    """
+    names = {name for (acc, _), name in (partner_map or {}).items() if acc == unp_acc}
+    if len(names) == 1:
+        return names.pop()
+    return (partner_map or {}).get((unp_acc, role), unp_acc)
+
+
 def _label_partner(unp_acc: str, role: int, partner_map: dict) -> str:
-    label = partner_map.get((unp_acc, role), unp_acc)
+    label = _partner_name(partner_map, unp_acc, role)
     return label.replace(" (role 1)", "").replace(" (role 2)", "")
 
 
@@ -1669,8 +1690,13 @@ def _build_partner_metadata(
             seen.add((r.unp_accession_1, 1))
         if r.unp_accession_2:
             seen.add((r.unp_accession_2, 2))
+    # A partner the records already place keeps the role the records give it:
+    # `partner_map` can file a heterodimer partner under the other role, and
+    # adding that key as well would list the partner twice.
+    placed = {acc for acc, _ in seen}
     for key in (partner_map or {}).keys():
-        seen.add(key)
+        if key[0] not in placed:
+            seen.add(key)
 
     rich: dict[str, dict] = {}
     if complex_details:
@@ -1694,14 +1720,8 @@ def _build_partner_metadata(
             label = gene
         elif name:
             label = name
-        elif partner_map and (acc, role) in partner_map:
-            label = (
-                partner_map[(acc, role)]
-                .replace(" (role 1)", "")
-                .replace(" (role 2)", "")
-            )
         else:
-            label = acc
+            label = _label_partner(acc, role, partner_map or {})
         out[(acc, role)] = {
             "role": int(role),
             "unp_accession": acc,

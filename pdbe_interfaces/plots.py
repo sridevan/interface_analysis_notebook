@@ -82,12 +82,36 @@ def similarity_heatmap(
     plt.show()
 
 
+ABOVE_CUT_COLOUR = "#7f7f7f"
+
+
+def dendrogram_colour_options(distance_cut: float) -> dict:
+    """`scipy` dendrogram options that colour branches by the clustering cut.
+
+    Left to its default, `dendrogram` colours branches below 70% of the tree
+    height, which has nothing to do with `distance_cut` and can show two
+    clusters in one colour. `fcluster` joins everything linked at a distance
+    less than or equal to the cut, whereas `dendrogram` colours links strictly
+    below its threshold, so the threshold is the next float above the cut: a
+    link exactly at the cut is then coloured as inside a cluster, as it is
+    assigned. Links above the cut are drawn in a neutral grey.
+    """
+    return {
+        "color_threshold": float(np.nextafter(distance_cut, np.inf)),
+        "above_threshold_color": ABOVE_CUT_COLOUR,
+    }
+
+
 def cluster_dendrogram(
     cluster_result: ClusterResult,
     records: list[InterfaceRecord],
     distance_cut: float,
 ) -> None:
-    """Average-linkage dendrogram with the current cut drawn as a red line."""
+    """Average-linkage dendrogram, branches coloured by cluster at the cut.
+
+    Each colour below the red cut line is one cluster from `cluster_interfaces`;
+    grey branches lie above the cut, and a singleton is a grey leaf.
+    """
     n = len(records)
     if n < 2:
         print("At least two interfaces are required for clustering.")
@@ -95,7 +119,10 @@ def cluster_dendrogram(
 
     labels = [outputs.label_for_record(r) for r in records]
     _, ax = plt.subplots(figsize=(max(8, 0.5 * n + 3), 5))
-    dendrogram(cluster_result.linkage, labels=labels, leaf_rotation=90, ax=ax)
+    dendrogram(
+        cluster_result.linkage, labels=labels, leaf_rotation=90, ax=ax,
+        **dendrogram_colour_options(distance_cut),
+    )
     ax.axhline(
         distance_cut, color="red", linestyle="--", linewidth=1,
         label=f"distance cut = {distance_cut}",
@@ -104,10 +131,6 @@ def cluster_dendrogram(
     ax.legend(loc="upper right")
     plt.tight_layout()
     plt.show()
-    print(
-        f"Clusters at distance cut {distance_cut}: "
-        f"{len(set(cluster_result.flat_assignment))}"
-    )
 
 
 def pair_frequency_heatmap(freq: dict, top_n: int, scope: str) -> None:

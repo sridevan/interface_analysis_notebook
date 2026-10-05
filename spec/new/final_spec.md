@@ -434,7 +434,7 @@ The comparison directly surfaces the structural distinction between two affinity
 
 A pandas DataFrame, one row per **interface interaction state** (cluster), with columns:
 
-- `cluster_id`, `cluster_size` (interface instances), `n_pdb_entries`, `member_interfaces` (`<pdb_id>_<assembly_id>_<interface_id>`, comma-separated)
+- `cluster_id`, `cluster_size` (interface instances), `n_pdb_entries`, `n_distinct_fingerprints` (distinct typed fingerprints among the members), `member_interfaces` (`<pdb_id>_<assembly_id>_<interface_id>`, comma-separated)
 - `experimental_methods`: comma-joined `"method (count)"`, e.g. `"X-ray diffraction (24), Electron microscopy (10)"`. Per-interface counts.
 - `resolution_range`: `"min–max Å (median X.XX, n=N)"`. `n` may be less than `cluster_size` if some assemblies lack a resolution value.
 - `interface_area_range`: `"min–max Å² (median X, n=N)"`. Sourced from PISA `interface_area` per interface.
