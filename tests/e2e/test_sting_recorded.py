@@ -138,6 +138,16 @@ def test_sting_recorded_reproduces_known_rewiring(sting):
     assert direction["Sting1:D209-Sting1:G233 hydrogen_bond"] == "higher in A"
     assert direction["Sting1:D273-Sting1:H156 salt_bridge"] == "higher in B"
     assert "shared core" not in set(direction)   # the two states share no core contact
+    assert "rare" not in set(direction)          # the residual label is `other`
+
+    # The per-cluster contact table reports the same counts, singletons left out.
+    contacts = outputs.cluster_contact_table(run.records, run.cluster_result,
+                                             partner_map=run.partner_map)
+    assert contacts.cluster_size.unique().tolist() == [9, 3]
+    assert len(contacts) == 10
+    row = contacts.set_index("contact").loc["Sting1:A232-Sting1:D209 hydrogen_bond"]
+    assert (row.in_cluster, row.in_remaining, row.entries_in_cluster) == ("9/9", "0/5", "7/7")
+    assert (row.fraction_in_cluster, row.fraction_in_remaining) == (1.0, 0.0)
 
 
 def test_sting_recorded_maps_known_interface_ligands(sting):

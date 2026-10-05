@@ -36,7 +36,7 @@ For headless execution (CI, papermill, `nbconvert --execute`), set `PDBE_INTERFA
 PDBE_INTERFACES_STATIC=1 jupyter nbconvert --to notebook --execute notebook.ipynb
 ```
 
-The Phase 5a explorer then renders the whole-dataset view once instead of building widgets.
+The residue-pair explorer (section 8) then renders the whole-dataset view once instead of building widgets.
 Its widget layout hangs `nbconvert --execute`: the kernel goes idle while the client waits
 for a reply that never arrives. The variable has no effect on interactive use.
 
@@ -103,13 +103,13 @@ Every setting is written out in the notebook's configuration cell and documented
 field in the `pdbe_interfaces.config.Config` docstring. The main ones:
 - `identifier`: a PDB entry ID (`"11gl"`, resolved via `complex/details/{pdb_id}?id_type=pdb_id`) or a PDBe-KB complex ID (`"PDB-CPX-172174"`). Either way the analysis covers every deposited structure of the resolved complex. Dimers only.
 - `max_entries`: restrict the analysis to the first N PDB entries alphabetically, for a quick check; `None` (default) uses the full dataset.
-- `max_workers`: threads for the Phase 1 per-entry and per-ligand retrieval (default 8). The ligand endpoint is called once per ligand instance, so this determines retrieval time.
+- `max_workers`: threads for the per-entry and per-ligand annotation retrieval (default 8). The ligand endpoint is called once per ligand instance, so this determines retrieval time.
 - `max_resolution`: exclude assemblies above this Å threshold and those with no reported resolution; `None` keeps everything.
 - `mutation_type_filter`: mutation types kept from the annotation API; the default keeps engineered mutations only, add `"Conflict"` for natural variants.
 - `ligand_blocklist`: components excluded from the ligand analysis (ions, buffers, cryoprotectants).
 - `cluster_distance_cut`: dendrogram cut height in `1 - Jaccard` units, which sets how many interface interaction states are reported.
 - `conservation_threshold`: fraction of interfaces at which a residue or contact counts as conserved.
-- `output_dir`: destination for the Phase 7 JSON export. Defaults to `interface_frequencies/`; `None` writes to the working directory.
+- `output_dir`: destination for the JSON export. Defaults to `interface_frequencies/`; `None` writes to the working directory.
 
 Retrieval is the slow step and runs concurrently: measured on the Spike RBD with ACE2
 complex at 114 entries, the ligand fetches took 4.5 s with the default 8 workers against
@@ -128,7 +128,7 @@ pdbe_interfaces/
   annotations.py     mutation / modification / ligand workflow
   outputs.py         structure table, conserved sets, cluster report, JSON export
   visualize.py       Mol* cluster-representative builders
-notebook.ipynb       phase narrative, configuration and guidance (Phases 1–7)
+notebook.ipynb       narrative, configuration and interpretation (sections 1–11)
 tests/
   unit/              offline unit regressions
   e2e/               frozen scientific regressions (STING, Spike RBD–ACE2)
@@ -139,17 +139,23 @@ spec/
   old/               earlier draft + implementation brief
 ```
 
-## Notebook phases
+## Notebook sections
 
-1. Data retrieval (PDBe interfaces, complex details, annotations)
-2. Build `InterfaceRecord`s (author- and UniProt-keyed interaction pairs)
-3. Jaccard similarity + hierarchical clustering
-4. Annotation overlap (mutations, modifications, ligands)
-5. Summarisation & per-cluster interpretation
-   - 5a. Key residue pairs (interactive widgets + contact heatmap, axes ordered by ascending UniProt position)
-   - 5b. Interface rewiring between interaction states
-6. Mol* visualisation of cluster representatives
-7. JSON export of per-residue conservation and residue–residue contact frequencies (`{complex_id}.json`)
+The notebook calls a group of similar interfaces an **interaction group**; in function
+names, column names and printed output the package calls it a `cluster` or an
+`interface interaction state`.
+
+1. Overview and terminology
+2. Retrieve interface instances (complex details, PDBe interfaces)
+3. Represent interfaces as contact fingerprints (`InterfaceRecord`s, author- and UniProt-keyed interaction pairs)
+4. Compare interfaces (Jaccard similarity)
+5. Group similar interfaces (hierarchical clustering)
+6. Add ligand, mutation and modification annotations
+7. Inspect group composition and quality
+8. Compare conserved and differential contacts (per-group contact table, residue-pair explorer with contact heatmap, rewiring between two groups)
+9. Visualise representative interfaces in Mol*
+10. Export per-residue conservation and residue–residue contact frequencies (`{complex_id}.json`)
+11. Interpretation and limitations
 
 ## Scope (v1)
 
