@@ -68,7 +68,7 @@ class Config:
         Intended for quick checks; a subset biases the clustering and every
         conservation fraction. None uses the full dataset.
     max_workers:
-        Threads used for the per-entry and per-ligand retrieval in Phase 1.
+        Threads used for the per-entry and per-ligand annotation retrieval.
         The ligand endpoint is called once per ligand instance, so this is the
         main determinant of retrieval time.
     conservation_threshold:
@@ -81,7 +81,7 @@ class Config:
     log_level:
         Logging level for the retrieval and processing steps.
     output_dir:
-        Destination for the Phase 7 JSON export. None writes to the working
+        Destination for the JSON export. None writes to the working
         directory.
     """
 

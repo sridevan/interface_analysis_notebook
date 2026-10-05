@@ -179,8 +179,10 @@ def collect_ligand_contacts_for_entries(
     of being processed entry by entry.
 
     Entries with no surviving ligands still get a (empty) key in the result.
+    Requests that failed are recorded in `api.failed_requests`.
     """
     pdb_ids = list(pdb_ids)
+    api.failed_requests.clear()
     bm_by_pdb = api.fetch_bound_molecules_many(pdb_ids, max_workers=max_workers)
 
     tasks: list[tuple[str, dict]] = []

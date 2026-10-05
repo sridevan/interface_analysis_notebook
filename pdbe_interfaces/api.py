@@ -18,7 +18,11 @@ Robustness behaviour:
 - Transient errors (5xx, 429, ConnectionError, Timeout) trigger up to MAX_ATTEMPTS
   total attempts with exponential backoff. Retries are logged at WARNING.
 - Persistent 4xx errors raise immediately (except 404 on endpoints called with
-  allow_404=True, which return an empty result).
+  allow_404=True, which return an empty result). PDBe answers 404 when it holds
+  no data for a request, so that empty result is a true zero.
+- Best-effort requests that fail for any other reason also return an empty
+  result, and are recorded in `failed_requests` so a caller can tell "no data"
+  from "could not be retrieved".
 - The two batch-POST endpoints (mutations, modifications) chunk their PDB ID
   list into POST_BATCH_SIZE blocks and merge results.
 """
@@ -56,6 +60,11 @@ DEFAULT_MAX_WORKERS = 8
 # thread-safe, but keeping them thread-local gives each worker HTTP keep-alive
 # (no TCP + TLS handshake per call) without sharing connection pools.
 _thread_local = threading.local()
+
+# URLs of best-effort requests that failed for a reason other than 404. The
+# data behind them is unknown, not absent. Cleared at the start of each ligand
+# collection; see `describe_failed_requests`.
+failed_requests: list[str] = []
 
 
 def _session() -> requests.Session:
@@ -111,7 +120,8 @@ def _get_json(
 ) -> Any:
     """GET and return parsed JSON.
 
-    `allow_404`: 404 returns None and logs a WARNING instead of raising.
+    `allow_404`: 404 returns None instead of raising. It is PDBe's reply for
+        "no data on file", an expected outcome, so it is logged at INFO.
     `tolerate_failure`: any exception (after retries exhausted, including
         non-404 4xx and 5xx) returns None and logs a WARNING. Use for
         best-effort calls where one failure shouldn't kill the whole job
@@ -121,15 +131,32 @@ def _get_json(
     try:
         resp = _retry_request("GET", url)
         if allow_404 and resp.status_code == 404:
-            log.warning("404 from %s, returning empty", url)
+            log.info("404 from %s: PDBe holds no data for this request", url)
             return None
         resp.raise_for_status()
         return resp.json()
     except Exception as e:
         if tolerate_failure:
             log.warning("Tolerated failure on GET %s: %s", url, e)
+            failed_requests.append(url)
             return None
         raise
+
+
+def describe_failed_requests() -> str:
+    """One line saying whether any best-effort request failed.
+
+    A 404 is PDBe's reply for "no data on file" and is not a failure. A request
+    listed here could not be completed, so annotations depending on it may be
+    missing and a count of zero is not evidence of absence.
+    """
+    if not failed_requests:
+        return "Ligand retrieval complete: no request failed."
+    listing = "\n".join(f"  {url}" for url in failed_requests)
+    return (
+        f"LIGAND RETRIEVAL INCOMPLETE: {len(failed_requests)} request(s) failed, so "
+        f"ligand annotations may be missing:\n{listing}"
+    )
 
 
 def _post_json(url: str, body: Any, *, allow_404: bool = False) -> Any:
@@ -140,7 +167,7 @@ def _post_json(url: str, body: Any, *, allow_404: bool = False) -> Any:
         headers={"Content-Type": "application/json"},
     )
     if allow_404 and resp.status_code == 404:
-        log.warning("404 from %s, returning empty", url)
+        log.info("404 from %s: PDBe holds no data for this request", url)
         return {}
     resp.raise_for_status()
     return resp.json()

@@ -17,17 +17,17 @@ Python transcription of them. Three cells are injected by the test:
 
 1. a setup cell before everything, which selects the non-interactive matplotlib
    backend, sets `PDBE_INTERFACES_STATIC=1` (the headless mode the README
-   documents for the Phase 5a explorer), puts the repository and the e2e test
+   documents for the residue-pair explorer), puts the repository and the e2e test
    helpers on `sys.path`, and installs `RecordedPDBe` as
    `requests.Session.request` so every call is served from the frozen STING
    fixture;
 2. an override cell immediately after the configuration cell, which redirects
-   `Config.output_dir` to a pytest temporary directory so the Phase 7 export
+   `Config.output_dir` to a pytest temporary directory so the JSON export
    never writes into the repository;
 3. a summary cell at the end, which prints the few values this test checks.
 
-No notebook cell is skipped or neutralised. All eighteen code cells execute,
-including the Phase 3 plots, the Phase 5a explorer and the Phase 6 Mol*
+No notebook cell is skipped or neutralised. All nineteen code cells execute,
+including the similarity plots, the residue-pair explorer and the Mol*
 rendering. The kernel runs in its own process, so the suite's in-process network
 guard does not reach it; the recorded router is what keeps this test offline,
 and it raises on any URL that was not captured.
@@ -57,7 +57,7 @@ KERNEL_TIMEOUT_S = 300
 SETUP_CELL = """
 import os, sys, logging, warnings
 warnings.filterwarnings("ignore")
-os.environ["PDBE_INTERFACES_STATIC"] = "1"      # headless Phase 5a, per the README
+os.environ["PDBE_INTERFACES_STATIC"] = "1"      # headless explorer, per the README
 import matplotlib; matplotlib.use("Agg")        # no interactive figure windows
 sys.path.insert(0, {repo!r})
 sys.path.insert(0, {helpers!r})
@@ -141,7 +141,7 @@ def test_notebook_analysis_path_executes_on_recorded_data(executed_notebook):
     summary, output_dir, repo_export_existed = executed_notebook
 
     # Every code cell of the notebook ran; nbclient would have raised otherwise.
-    assert summary["n_notebook_code_cells"] == 18
+    assert summary["n_notebook_code_cells"] == 19
 
     # Offline: every request was served by the recorded router. The count is a
     # property of the frozen STING fixture, not of the live complex.
@@ -159,7 +159,7 @@ def test_notebook_analysis_path_executes_on_recorded_data(executed_notebook):
     assert 0 < summary["report_rows"] <= summary["n_comparable"]
     assert summary["rewiring_rows"] > 0
 
-    # Phase 7 export completed, into the temporary directory rather than the repo.
+    # JSON export completed, into the temporary directory rather than the repo.
     assert summary["n_residue_freqs"] > 0 and summary["n_contact_freqs"] > 0
     assert (output_dir / f"{summary['complex_id']}.json").is_file()
     # The run wrote nothing into the repository's default export directory.

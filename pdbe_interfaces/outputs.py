@@ -894,6 +894,60 @@ def _contact_profile(
     return rows[:top_n], len(rows)
 
 
+def cluster_contact_table(
+    records: list[InterfaceRecord],
+    cluster_result: ClusterResult,
+    partner_map: dict[tuple[str, int], str] | None = None,
+    top_n: int = 5,
+    min_cluster_size: int = 2,
+) -> pd.DataFrame:
+    """The most frequent contacts of each cluster against the remaining interfaces.
+
+    A tabular view of the counts `cluster_interpretation_report` writes into
+    its `cluster_contacts` and `notes` text, from the same `_contact_profile`
+    and in the same order: most frequent inside the cluster first and, among
+    equals, least frequent outside it. Counts only, for the reason given there.
+
+    Clusters are listed largest first. Those below `min_cluster_size` are left
+    out, since a singleton has every one of its contacts at 100%.
+
+    Columns: cluster_id, cluster_size, contact, in_cluster (interfaces
+    carrying the contact / cluster size), fraction_in_cluster, in_remaining
+    (the same for interfaces outside the cluster), fraction_in_remaining,
+    entries_in_cluster (distinct PDB entries).
+    """
+    pmap = partner_map or {}
+    residue_identity = _merge_residue_identity(records)
+    by_cluster: dict[int, list[InterfaceRecord]] = {}
+    for i, r in enumerate(records):
+        if i < len(cluster_result.flat_assignment):
+            by_cluster.setdefault(int(cluster_result.flat_assignment[i]), []).append(r)
+
+    rows = []
+    for cid, members in sorted(by_cluster.items(), key=lambda kv: (-len(kv[1]), kv[0])):
+        if len(members) < min_cluster_size:
+            continue
+        member_keys = {r.key for r in members}
+        others = [r for r in records if r.key not in member_keys]
+        profile, _ = _contact_profile(members, others, 1, top_n)
+        for item in profile:
+            out_fraction = item["out_cluster_fraction"]
+            rows.append({
+                "cluster_id": cid,
+                "cluster_size": len(members),
+                "contact": _format_contact_label(item["contact"], True, pmap, residue_identity),
+                "in_cluster": f"{item['in_cluster_interfaces']}/{item['in_cluster_size']}",
+                "fraction_in_cluster": round(item["in_cluster_fraction"], 3),
+                "in_remaining": f"{item['out_cluster_interfaces']}/{item['out_cluster_size']}",
+                "fraction_in_remaining": None if out_fraction is None else round(out_fraction, 3),
+                "entries_in_cluster": f"{item['in_cluster_entries']}/{item['in_cluster_entry_total']}",
+            })
+    return pd.DataFrame(rows, columns=[
+        "cluster_id", "cluster_size", "contact", "in_cluster", "fraction_in_cluster",
+        "in_remaining", "fraction_in_remaining", "entries_in_cluster",
+    ])
+
+
 def compare_clusters(
     records: list[InterfaceRecord],
     cluster_result: ClusterResult,
@@ -1283,7 +1337,9 @@ def compare_cluster_contacts(
     """Interface rewiring table between two interface interaction states.
 
     Compares the contact frequency profiles of two clusters and labels each
-    contact as `shared core`, `A-enriched`, `B-enriched`, or `rare`.
+    contact as `shared core`, `higher in A`, `higher in B`, or `other`.
+    `other` means neither of the first three: it says nothing about how
+    frequent the contact is.
 
     Defaults to the two largest non-singleton clusters when ids are omitted.
 
@@ -1373,7 +1429,7 @@ def compare_cluster_contacts(
         elif diff <= -a_enriched_threshold:
             direction = "higher in B"
         else:
-            direction = "rare"
+            direction = "other"
 
         rows.append({
             "contact": _format_contact_label(c, typed, pmap, rid),

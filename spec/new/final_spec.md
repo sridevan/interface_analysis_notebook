@@ -271,7 +271,7 @@ The notebook is organised as a sequence of phases, each mapping to one or two ce
 11. Build the structure table.
 12. Identify conserved residues and conserved interaction pairs at the configured threshold.
 13. Build the cluster interpretation report, one row per interface interaction state, including per-interface distributions of residue-pair count, typed-tuple interaction count, and PISA interface area; median contact density; **core contacts** present in ≥ `conservation_threshold` of cluster members; the contacts and annotations of the state with their counts in the rest of the dataset, at interface and distinct-entry level; and QC warnings (singleton, sparse, tiny interface, mixed UniProt residue range, resolution gap vs the dominant cluster).
-14. Build the **interface rewiring** table, a head-to-head comparison between two interaction states, labelling each contact as `shared core`, `higher in A`, `higher in B`, or `rare`. Defaults to the two largest non-singleton states; users can pass arbitrary cluster ids.
+14. Build the **interface rewiring** table, a head-to-head comparison between two interaction states, labelling each contact as `shared core`, `higher in A`, `higher in B`, or `other`. Defaults to the two largest non-singleton states; users can pass arbitrary cluster ids.
 
 **Phase 7; Export interface conservation JSON.**
 15. Call `export_interface_frequency_json` to write a lightweight JSON containing UniProt residue-level interface conservation and residue–residue contact frequencies for downstream visualisation (Mol* colouring, frontend contact matrices/heatmaps, AFDB-style overlays). This step is export-only and does not modify clustering, the heatmap, or the interpretation report. Output is written to `Config.output_dir` (created if missing) or the current directory if `output_dir` is `None`. See **Output schema; Interface frequency JSON export** below for the file structure.
@@ -416,7 +416,7 @@ Two helpers are exposed; both produce a per-contact diff between two clusters bu
 - `shared core`: fraction ≥ `shared_core_threshold` (default 0.8) in *both* clusters; the conserved core that is unchanged between states;
 - `higher in A`: `fraction_difference ≥ a_enriched_threshold` (default 0.5); a contact strongly gained in state A relative to state B;
 - `higher in B`: `fraction_difference ≤ -a_enriched_threshold`; a contact strongly gained in state B;
-- `rare`: neither state shows strong enrichment (the long tail).
+- `other`: neither of the above. The label says nothing about how frequent the contact is.
 
 When `cluster_a` and `cluster_b` are omitted, the two largest non-singleton clusters are selected automatically. When `typed=False`, contacts collapse across `bond_type` so a residue-pair shared via different bond types counts once. The chosen cluster ids and sizes are surfaced via `df.attrs["cluster_a"] / "cluster_b" / "size_a" / "size_b" / "typed"` for downstream display.
 
@@ -934,7 +934,7 @@ The notebook embeds the following copy verbatim. All text is for a technically l
 
 ### Phase 5b preamble: interface rewiring
 
-> **Phase 5b; Interface rewiring between interaction states.** A head-to-head comparison of two states. Each typed contact is labelled `shared core` (≥ 80% in both states), `A-enriched` / `B-enriched` (fraction differs by ≥ 0.5), or `rare`. Defaults to the two largest non-singleton states; pass `cluster_a` / `cluster_b` to compare any pair from the report above.
+> **Phase 5b; Interface rewiring between interaction states.** A head-to-head comparison of two states. Each typed contact is labelled `shared core` (≥ 80% in both states), `A-enriched` / `B-enriched` (fraction differs by ≥ 0.5), or `other`. Defaults to the two largest non-singleton states; pass `cluster_a` / `cluster_b` to compare any pair from the report above.
 
 ### Tooltip / inline help: conservation threshold
 
