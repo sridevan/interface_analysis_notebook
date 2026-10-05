@@ -183,7 +183,7 @@ def test_sting_recorded_reports_expected_qc_and_frequencies(sting):
 
     # 4jc5: singleton with only four residue pairs, flagged on both counts.
     row = report.loc[run.cluster_of("4jc5")]
-    assert row.member_pdb_ids == "4jc5"
+    assert (row.member_interfaces, row.n_pdb_entries) == ("4jc5_1_1", 1)
     assert row.residue_pair_count_median == 4
     assert "singleton" in row.qc_warnings
     assert "sparse" in row.qc_warnings

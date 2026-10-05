@@ -173,7 +173,7 @@ def test_cluster_report_in_and_out_counts(clustered):
 
     assert report.cluster_size.tolist() == [2, 2]
     row_a = report[report.cluster_id == 1].iloc[0]
-    assert row_a.member_pdb_ids == "1aaa,2bbb"
+    assert (row_a.member_interfaces, row_a.n_pdb_entries) == ("1aaa_1_1, 2bbb_1_1", 2)
     # Contact in every member and absent from the rest of the dataset.
     assert "P00001:A2-P00002:G2 hydrogen_bond (2/2 interfaces = 100%, 2/2 entries; rest 0/2 = 0%)" \
         in row_a.cluster_contacts

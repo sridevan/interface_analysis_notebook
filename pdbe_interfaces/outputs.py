@@ -410,6 +410,10 @@ def cluster_interpretation_report(
 
     Rows are ordered by cluster size descending, ties broken by cluster id.
 
+    `cluster_size` counts interface instances and `member_interfaces` lists
+    them as `<pdb_id>_<assembly_id>_<interface_id>`; `n_pdb_entries` is the
+    number of distinct PDB entries they come from.
+
     Each cluster is treated as a candidate interface interaction state. For
     each cluster the report surfaces:
 
@@ -498,7 +502,13 @@ def cluster_interpretation_report(
         member_keys = {r.key for r in members}
         non_member_keys = all_keys - member_keys
         non_member_records = [r for r in records if r.key not in member_keys]
-        member_pdb_ids = sorted({r.pdb_id for r in members})
+        # Membership is by interface instance, the unit the clustering works
+        # on: one PDB entry can contribute several, possibly to different clusters.
+        member_interfaces = [
+            f"{r.pdb_id}_{r.assembly_id}_{r.interface_id}"
+            for r in sorted(members, key=lambda r: r.key)
+        ]
+        n_pdb_entries = len({r.pdb_id for r in members})
 
         methods = Counter()
         resolutions: list[float] = []
@@ -602,7 +612,8 @@ def cluster_interpretation_report(
         rows.append({
             "cluster_id": cid,
             "cluster_size": len(members),
-            "member_pdb_ids": ",".join(member_pdb_ids),
+            "n_pdb_entries": n_pdb_entries,
+            "member_interfaces": ", ".join(member_interfaces),
             "experimental_methods": methods_str,
             "resolution_range": resolution_str,
             "interface_area_range": area_str,
