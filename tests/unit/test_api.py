@@ -8,6 +8,7 @@ Nothing here talks to PDBe.
 from __future__ import annotations
 
 import json
+import logging
 import time
 
 import pytest
@@ -128,6 +129,33 @@ def test_exhausted_retries_are_tolerated_on_best_effort_endpoint(http):
     http.respond(*[FakeResponse(503)] * api.MAX_ATTEMPTS)
     assert api.fetch_bound_molecules("1abc") == []
     assert len(http.calls) == api.MAX_ATTEMPTS
+
+
+def test_tolerated_failure_is_recorded_but_404_is_not(http, caplog):
+    caplog.set_level(logging.INFO, logger="pdbe_interfaces.api")
+    api.failed_requests.clear()
+    http.respond(FakeResponse(404))
+    assert api.fetch_bound_molecules("1abc") == []
+    assert api.failed_requests == []
+    assert "no request failed" in api.describe_failed_requests()
+    # "No data on file" is an expected outcome: logged, but not as a warning.
+    assert [r.levelno for r in caplog.records if "404" in r.getMessage()] == [logging.INFO]
+
+    caplog.clear()
+    http.respond(*[FakeResponse(503)] * api.MAX_ATTEMPTS)
+    assert api.fetch_bound_molecules("2xyz") == []
+    assert api.failed_requests == [f"{api.BASE}/pdb/bound_molecules/2xyz"]
+    assert "INCOMPLETE: 1 request(s) failed" in api.describe_failed_requests()
+    assert any(r.levelno == logging.WARNING and "Tolerated failure" in r.getMessage()
+               for r in caplog.records)
+    api.failed_requests.clear()
+
+
+def test_no_data_404_on_batched_post_is_not_a_warning(http, caplog):
+    caplog.set_level(logging.INFO, logger="pdbe_interfaces.api")
+    http.respond(FakeResponse(404))
+    assert api.fetch_modifications(["1abc"]) == {}
+    assert not [r for r in caplog.records if r.levelno >= logging.WARNING]
 
 
 def test_non_retryable_client_error_raises_immediately(http):
