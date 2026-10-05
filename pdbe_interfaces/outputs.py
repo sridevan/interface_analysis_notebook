@@ -410,6 +410,10 @@ def cluster_interpretation_report(
 
     Rows are ordered by cluster size descending, ties broken by cluster id.
 
+    `cluster_size` counts interface instances and `member_interfaces` lists
+    them as `<pdb_id>_<assembly_id>_<interface_id>`; `n_pdb_entries` is the
+    number of distinct PDB entries they come from.
+
     Each cluster is treated as a candidate interface interaction state. For
     each cluster the report surfaces:
 
@@ -498,7 +502,13 @@ def cluster_interpretation_report(
         member_keys = {r.key for r in members}
         non_member_keys = all_keys - member_keys
         non_member_records = [r for r in records if r.key not in member_keys]
-        member_pdb_ids = sorted({r.pdb_id for r in members})
+        # Membership is by interface instance, the unit the clustering works
+        # on: one PDB entry can contribute several, possibly to different clusters.
+        member_interfaces = [
+            f"{r.pdb_id}_{r.assembly_id}_{r.interface_id}"
+            for r in sorted(members, key=lambda r: r.key)
+        ]
+        n_pdb_entries = len({r.pdb_id for r in members})
 
         methods = Counter()
         resolutions: list[float] = []
@@ -602,7 +612,8 @@ def cluster_interpretation_report(
         rows.append({
             "cluster_id": cid,
             "cluster_size": len(members),
-            "member_pdb_ids": ",".join(member_pdb_ids),
+            "n_pdb_entries": n_pdb_entries,
+            "member_interfaces": ", ".join(member_interfaces),
             "experimental_methods": methods_str,
             "resolution_range": resolution_str,
             "interface_area_range": area_str,
@@ -892,60 +903,6 @@ def _contact_profile(
         str(r["contact"]),
     ))
     return rows[:top_n], len(rows)
-
-
-def cluster_contact_table(
-    records: list[InterfaceRecord],
-    cluster_result: ClusterResult,
-    partner_map: dict[tuple[str, int], str] | None = None,
-    top_n: int = 5,
-    min_cluster_size: int = 2,
-) -> pd.DataFrame:
-    """The most frequent contacts of each cluster against the remaining interfaces.
-
-    A tabular view of the counts `cluster_interpretation_report` writes into
-    its `cluster_contacts` and `notes` text, from the same `_contact_profile`
-    and in the same order: most frequent inside the cluster first and, among
-    equals, least frequent outside it. Counts only, for the reason given there.
-
-    Clusters are listed largest first. Those below `min_cluster_size` are left
-    out, since a singleton has every one of its contacts at 100%.
-
-    Columns: cluster_id, cluster_size, contact, in_cluster (interfaces
-    carrying the contact / cluster size), fraction_in_cluster, in_remaining
-    (the same for interfaces outside the cluster), fraction_in_remaining,
-    entries_in_cluster (distinct PDB entries).
-    """
-    pmap = partner_map or {}
-    residue_identity = _merge_residue_identity(records)
-    by_cluster: dict[int, list[InterfaceRecord]] = {}
-    for i, r in enumerate(records):
-        if i < len(cluster_result.flat_assignment):
-            by_cluster.setdefault(int(cluster_result.flat_assignment[i]), []).append(r)
-
-    rows = []
-    for cid, members in sorted(by_cluster.items(), key=lambda kv: (-len(kv[1]), kv[0])):
-        if len(members) < min_cluster_size:
-            continue
-        member_keys = {r.key for r in members}
-        others = [r for r in records if r.key not in member_keys]
-        profile, _ = _contact_profile(members, others, 1, top_n)
-        for item in profile:
-            out_fraction = item["out_cluster_fraction"]
-            rows.append({
-                "cluster_id": cid,
-                "cluster_size": len(members),
-                "contact": _format_contact_label(item["contact"], True, pmap, residue_identity),
-                "in_cluster": f"{item['in_cluster_interfaces']}/{item['in_cluster_size']}",
-                "fraction_in_cluster": round(item["in_cluster_fraction"], 3),
-                "in_remaining": f"{item['out_cluster_interfaces']}/{item['out_cluster_size']}",
-                "fraction_in_remaining": None if out_fraction is None else round(out_fraction, 3),
-                "entries_in_cluster": f"{item['in_cluster_entries']}/{item['in_cluster_entry_total']}",
-            })
-    return pd.DataFrame(rows, columns=[
-        "cluster_id", "cluster_size", "contact", "in_cluster", "fraction_in_cluster",
-        "in_remaining", "fraction_in_remaining", "entries_in_cluster",
-    ])
 
 
 def compare_clusters(
@@ -1415,6 +1372,7 @@ def compare_cluster_contacts(
     rid = residue_identity if residue_identity is not None else _merge_residue_identity(records)
 
     rows = []
+    display_labels: dict[str, str] = {}
     for c in set(counts_a) | set(counts_b):
         a_n = int(counts_a.get(c, 0))
         b_n = int(counts_b.get(c, 0))
@@ -1431,8 +1389,10 @@ def compare_cluster_contacts(
         else:
             direction = "other"
 
+        label = _format_contact_label(c, typed, pmap, rid)
+        display_labels[label] = _format_contact_display(c, typed, pmap, rid)
         rows.append({
-            "contact": _format_contact_label(c, typed, pmap, rid),
+            "contact": label,
             "cluster_A_count": a_n,
             "cluster_B_count": b_n,
             "cluster_A_fraction": round(frac_a, 3),
@@ -1455,6 +1415,8 @@ def compare_cluster_contacts(
     df.attrs["size_a"] = size_a
     df.attrs["size_b"] = size_b
     df.attrs["typed"] = bool(typed)
+    # Reader-facing contact labels, keyed by `contact`, for `differential_contact_table`.
+    df.attrs["contact_display"] = display_labels
     if top_n is not None:
         df = df.head(top_n).reset_index(drop=True)
     return df
@@ -1472,6 +1434,57 @@ def _format_contact_label(contact, typed: bool, partner_map: dict, residue_ident
     aa2 = residue_identity.get((acc2, pos2, role2), "")
     base = f"{l1}:{aa1}{pos1}-{l2}:{aa2}{pos2}"
     return f"{base} {bond}".strip()
+
+
+BOND_TYPE_DISPLAY = {"hydrogen_bond": "H-bond", "salt_bridge": "salt bridge"}
+
+
+def _format_contact_display(contact, typed: bool, partner_map: dict, residue_identity: dict) -> str:
+    """Reader-facing contact label, e.g. `D209–A232 · H-bond`.
+
+    The partner names are left out when both sides carry the same one (a
+    homodimer), where they add nothing, and kept otherwise.
+    """
+    if typed:
+        (acc1, pos1, role1), (acc2, pos2, role2), bond = contact
+    else:
+        (acc1, pos1, role1), (acc2, pos2, role2) = contact
+        bond = ""
+    l1 = _label_partner(acc1, role1, partner_map)
+    l2 = _label_partner(acc2, role2, partner_map)
+    r1 = f"{residue_identity.get((acc1, pos1, role1), '')}{pos1}"
+    r2 = f"{residue_identity.get((acc2, pos2, role2), '')}{pos2}"
+    pair = f"{r1}–{r2}" if l1 == l2 else f"{l1}:{r1}–{l2}:{r2}"
+    if not bond:
+        return pair
+    return f"{pair} · {BOND_TYPE_DISPLAY.get(bond, bond.replace('_', ' '))}"
+
+
+def differential_contact_table(table: pd.DataFrame) -> pd.DataFrame:
+    """Reader-facing view of a `compare_cluster_contacts` / `rewiring_table` table.
+
+    Presentation only: the same rows in the same order, with the count and
+    percentage of each cluster combined into one column per cluster and the
+    `contact_direction` label spelled out with the cluster ids. The numeric
+    table it is built from is left untouched for downstream use.
+    """
+    if table.empty:
+        return pd.DataFrame(columns=["Contact", "Pattern"])
+    a, b = table.attrs["cluster_a"], table.attrs["cluster_b"]
+    size_a, size_b = table.attrs["size_a"], table.attrs["size_b"]
+    labels = table.attrs.get("contact_display", {})
+    pattern = {
+        "shared core": "Shared core",
+        "higher in A": f"Higher in group {a}",
+        "higher in B": f"Higher in group {b}",
+        "other": "Other",
+    }
+    return pd.DataFrame({
+        "Contact": [labels.get(c, c) for c in table["contact"]],
+        f"Interaction group {a}": [f"{n}/{size_a} ({n / size_a:.0%})" for n in table["cluster_A_count"]],
+        f"Interaction group {b}": [f"{n}/{size_b} ({n / size_b:.0%})" for n in table["cluster_B_count"]],
+        "Pattern": [pattern.get(d, d) for d in table["contact_direction"]],
+    })
 
 
 # Conservation level cutoffs for residue_frequencies in the JSON export.
@@ -1747,40 +1760,41 @@ def rewiring_table(
     except ValueError as exc:
         return pd.DataFrame(), f"No comparison available: {exc}"
     message = (
-        f"State {table.attrs.get('cluster_a')} (n={table.attrs.get('size_a')}) versus "
-        f"state {table.attrs.get('cluster_b')} (n={table.attrs.get('size_b')}), "
-        f"sorted by absolute fraction difference, top {top_n}."
+        f"Interaction group {table.attrs.get('cluster_a')} (n={table.attrs.get('size_a')}) versus "
+        f"interaction group {table.attrs.get('cluster_b')} (n={table.attrs.get('size_b')}): "
+        f"the {top_n} contacts with the largest frequency difference."
     )
     return table, message
 
 
 def describe_conservation(records: list[InterfaceRecord], threshold: float) -> str:
-    """Conserved residue and pair counts, with context when the count is zero.
+    """One or two sentences on what is conserved across all interfaces.
 
     A zero at the default threshold is a real result rather than a failure, so
-    report the highest frequency actually observed and what it would take to
-    reach it.
+    it is reported with the highest residue frequency actually observed.
     """
     n = len(records)
+    if not n:
+        return "No interface instances to summarise."
     res = conserved_residues(records, threshold=threshold)
     pairs = conserved_interaction_pairs(records, threshold=threshold)
-    lines = [
-        f"Conserved residues at threshold {threshold}: {len(res)}",
-        f"Conserved interaction pairs at threshold {threshold}: {len(pairs)}",
-    ]
-    if n and not res:
-        counts: Counter = Counter()
-        for r in records:
-            seen = set()
-            for a, b, _ in r.uniprot_pairs:
-                seen.add(a)
-                seen.add(b)
-            counts.update(seen)
-        if counts:
-            best = max(counts.values())
-            lines.append(
-                f"  No residue reaches the {threshold} cutoff across {n} interfaces. "
-                f"The most frequent occurs in {best}/{n} ({best / n:.0%}), so setting "
-                f"conservation_threshold to {best / n:.2f} or lower would return results."
-            )
+    scope = f"across ≥{threshold * 100:g}% of the {n} retained interface instances"
+    if res or pairs:
+        return (
+            f"{len(res)} residue(s) and {len(pairs)} residue-pair contact(s) are "
+            f"conserved {scope}."
+        )
+    lines = [f"No residue or residue-pair contact is conserved {scope}."]
+    counts: Counter = Counter()
+    for r in records:
+        seen = set()
+        for a, b, _ in r.uniprot_pairs:
+            seen.add(a)
+            seen.add(b)
+        counts.update(seen)
+    if counts:
+        best = max(counts.values())
+        lines.append(
+            f"The most frequently observed residue occurs in {best}/{n} interfaces ({best / n:.0%})."
+        )
     return "\n".join(lines)

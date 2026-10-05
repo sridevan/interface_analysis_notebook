@@ -434,7 +434,7 @@ The comparison directly surfaces the structural distinction between two affinity
 
 A pandas DataFrame, one row per **interface interaction state** (cluster), with columns:
 
-- `cluster_id`, `cluster_size`, `member_pdb_ids`
+- `cluster_id`, `cluster_size` (interface instances), `n_pdb_entries`, `member_interfaces` (`<pdb_id>_<assembly_id>_<interface_id>`, comma-separated)
 - `experimental_methods`: comma-joined `"method (count)"`, e.g. `"X-ray diffraction (24), Electron microscopy (10)"`. Per-interface counts.
 - `resolution_range`: `"min–max Å (median X.XX, n=N)"`. `n` may be less than `cluster_size` if some assemblies lack a resolution value.
 - `interface_area_range`: `"min–max Å² (median X, n=N)"`. Sourced from PISA `interface_area` per interface.
@@ -671,7 +671,7 @@ Approximately half of the reported contacts were reproducible from labels carryi
 - `pair_matrix`, `partner_1_labels`, `partner_2_labels`, 2D numpy matrix (partner-1 residues × partner-2 residues) with per-cell counts, plus axis labels. Suitable for a frequency heatmap.
 
 The notebook wraps these outputs in an **interactive widget** (`ipywidgets.Dropdown` + `IntSlider`):
-- Cluster dropdown: `"All clusters"` (full dataset) or a specific cluster ID. Re-runs `interface_frequency_summary` on the cluster's member subset and re-renders tables + heatmap on change.
+- Interaction-group dropdown: `"All"` (full dataset) or a specific cluster ID. Re-runs `interface_frequency_summary` on the cluster's member subset and re-renders tables + heatmap on change.
 - Top-N slider: caps rows displayed in each table and the heatmap's matrix dimension (default 15, range 5–40).
 
 This gives an "all interfaces vs cluster X" comparison without re-running the workflow. Cell values in the heatmap are fractions in `[0, 1]`; 1.0 means every interface in the (filtered) selection contains that residue-pair contact.
@@ -970,7 +970,7 @@ The notebook embeds the following copy verbatim. All text is for a technically l
 
 ### Cluster report: annotation correlate present
 
-> Cluster {cluster_id} ({n} interfaces): all members carry {feature}. {member_pdb_ids}.
+> Cluster {cluster_id} ({n} interfaces): all members carry {feature}. {member_interfaces}.
 
 ### Cluster report: no annotation correlate
 

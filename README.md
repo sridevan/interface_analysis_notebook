@@ -152,7 +152,7 @@ names, column names and printed output the package calls it a `cluster` or an
 5. Group similar interfaces (hierarchical clustering)
 6. Add ligand, mutation and modification annotations
 7. Inspect group composition and quality
-8. Compare conserved and differential contacts (per-group contact table, residue-pair explorer with contact heatmap, rewiring between two groups)
+8. Compare conserved and differential contacts (overall conservation, residue-pair explorer with contact heatmap, differential contacts between the two main groups)
 9. Visualise representative interfaces in Mol*
 10. Export per-residue conservation and residue–residue contact frequencies (`{complex_id}.json`)
 11. Interpretation and limitations

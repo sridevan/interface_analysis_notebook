@@ -149,6 +149,35 @@ def clustered():
     return records, result
 
 
+def test_describe_conservation_is_one_dynamic_summary(clustered):
+    records, _ = clustered
+    # Contact (1, 1) is in all four interfaces; nothing else passes 0.8.
+    assert outputs.describe_conservation(records, 0.8) == (
+        "2 residue(s) and 1 residue-pair contact(s) are conserved across ≥80% of the "
+        "4 retained interface instances."
+    )
+    # Four interfaces sharing at most one contact between two of them.
+    sparse = [records[0], records[2], _record("5eee", [(4, 4, HB)]), _record("6fff", [(5, 5, HB)])]
+    assert outputs.describe_conservation(sparse, 0.8) == (
+        "No residue or residue-pair contact is conserved across ≥80% of the "
+        "4 retained interface instances.\n"
+        "The most frequently observed residue occurs in 2/4 interfaces (50%)."
+    )
+
+
+def test_differential_contact_table_is_a_view_of_the_numeric_table(clustered):
+    records, result = clustered
+    table = outputs.compare_cluster_contacts(records, result, cluster_a=1, cluster_b=2)
+    before = table.copy()
+    view = outputs.differential_contact_table(table).set_index("Contact")
+
+    assert list(view.columns) == ["Interaction group 1", "Interaction group 2", "Pattern"]
+    assert view.loc["P00001:A1–P00002:G1 · H-bond"].tolist() == ["2/2 (100%)", "2/2 (100%)", "Shared core"]
+    assert view.loc["P00001:A2–P00002:G2 · H-bond"].tolist() == ["2/2 (100%)", "0/2 (0%)", "Higher in group 1"]
+    assert view.loc["P00001:A3–P00002:G3 · salt bridge"].tolist() == ["0/2 (0%)", "2/2 (100%)", "Higher in group 2"]
+    assert table.equals(before)   # the numeric table is not modified
+
+
 def test_rewiring_labels_from_cluster_fractions(clustered):
     records, result = clustered
     table = outputs.compare_cluster_contacts(records, result, cluster_a=1, cluster_b=2)
@@ -173,7 +202,7 @@ def test_cluster_report_in_and_out_counts(clustered):
 
     assert report.cluster_size.tolist() == [2, 2]
     row_a = report[report.cluster_id == 1].iloc[0]
-    assert row_a.member_pdb_ids == "1aaa,2bbb"
+    assert (row_a.member_interfaces, row_a.n_pdb_entries) == ("1aaa_1_1, 2bbb_1_1", 2)
     # Contact in every member and absent from the rest of the dataset.
     assert "P00001:A2-P00002:G2 hydrogen_bond (2/2 interfaces = 100%, 2/2 entries; rest 0/2 = 0%)" \
         in row_a.cluster_contacts
