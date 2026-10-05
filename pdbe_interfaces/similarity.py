@@ -109,6 +109,47 @@ def cluster_interfaces(
     return ClusterResult(linkage=Z, flat_assignment=assignment, distance_cut=distance_cut)
 
 
+def describe_cut_sensitivity(linkage_matrix: np.ndarray, distance_cut: float) -> str:
+    """Say how close `distance_cut` is to the linkage distances around it.
+
+    Distances are on the dendrogram's scale, `1 - Jaccard`. A linkage close to
+    the cut means a small change in the cut changes the number of clusters.
+    Clusters are not named: their ids are labels, not stable identities.
+    """
+    heights = np.asarray(linkage_matrix, dtype=float).reshape(-1, 4)[:, 2]
+    if heights.size == 0:
+        return "Fewer than two interface instances: there is no clustering cut to assess."
+    n_groups = len(set(fcluster(linkage_matrix, t=distance_cut, criterion="distance").tolist()))
+    at_cut = np.isclose(heights, distance_cut, rtol=0.0, atol=1e-9)
+    below = heights[(heights < distance_cut) & ~at_cut]
+    above = heights[(heights > distance_cut) & ~at_cut]
+
+    def fmt(value: float) -> str:
+        # Two decimals, unless that would print a different distance as the cut itself.
+        text = f"{value:.2f}"
+        return text if text != f"{distance_cut:.2f}" or value == distance_cut else f"{value:.3f}"
+
+    plural = "group" if n_groups == 1 else "groups"
+    first = f"At cut {distance_cut:.2f}, the analysis gives {n_groups} interaction {plural}."
+    parts = []
+    if below.size:
+        parts.append(f"the nearest linkage below the cut is at {fmt(below.max())}")
+    else:
+        parts.append("no linkage lies below the cut")
+    if above.size:
+        parts.append(f"the next linkage above the cut is at {fmt(above.min())}")
+    else:
+        parts.append("no linkage lies above the cut")
+    second = (parts[0][0].upper() + parts[0][1:]) + ", and " + parts[1] + "."
+    if at_cut.any():
+        second = (
+            f"A linkage occurs exactly at the cut ({distance_cut:.2f}), so the number of "
+            f"groups changes with any small change in the cut; " + parts[0] + ", and "
+            + parts[1] + "."
+        )
+    return f"{first} {second}"
+
+
 def describe_typed_untyped_divergence(
     sim_typed: np.ndarray, sim_untyped: np.ndarray,
 ) -> str:
