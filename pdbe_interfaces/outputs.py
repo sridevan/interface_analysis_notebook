@@ -39,12 +39,15 @@ DEFAULT_RANGE_OVERLAP_MIN = 0.2           # fraction of range overlap with domin
 
 
 def extract_assembly_metadata(complex_details: dict) -> dict[tuple[str, str], dict]:
-    """Per-assembly experimental_method and resolution from complex/details.
+    """Per-assembly experimental_method, resolution and preferred flag.
 
     Returned dict is keyed on (pdb_id, assembly_id) (both as strings) and maps
-    to a small dict with `experimental_method` (str|None) and `resolution`
-    (float|None). Used by build_structure_table and cluster_interpretation_report
-    to surface methodological context alongside biological annotations.
+    to a small dict with `experimental_method` (str|None), `resolution`
+    (float|None) and `preferred_assembly` (bool|None). Used by
+    build_structure_table and cluster_interpretation_report to surface
+    methodological context alongside biological annotations, and by
+    `annotation_report` to decide which interfaces are eligible for the
+    PDBe Arpeggio protein-ligand summary.
     """
     out: dict[tuple[str, str], dict] = {}
     for a in (complex_details.get("assemblies") or []):
@@ -53,9 +56,11 @@ def extract_assembly_metadata(complex_details: dict) -> dict[tuple[str, str], di
         if pdb is None or asm is None:
             continue
         res = a.get("resolution")
+        preferred = a.get("preferred_assembly")
         out[(str(pdb), str(asm))] = {
             "experimental_method": a.get("experimental_method"),
             "resolution": float(res) if res is not None else None,
+            "preferred_assembly": None if preferred is None else bool(preferred),
         }
     return out
 
@@ -915,6 +920,233 @@ def _contact_profile(
     return rows[:top_n], len(rows)
 
 
+# Annotation streams, with the column carrying each one's identity and the
+# optional column carrying a human-readable detail for it.
+ANNOTATION_STREAMS = (
+    ("ligand", "ligands", "ligand_chem_comp_id", None),
+    ("mutation", "mutations", "mutation_label", "mutation_type"),
+    ("modification", "modifications", "modification_chem_comp_id",
+     "modification_chem_comp_name"),
+)
+
+# PDBe computes Arpeggio protein-ligand interactions for the preferred
+# assembly, so only preferred-assembly interfaces are a sound denominator for
+# a ligand frequency. This is an eligibility rule, not proof that annotation
+# exists: see `annotation_report`.
+ELIGIBILITY_PREFERRED = "preferred_assembly"
+ELIGIBILITY_ALL = "all_interfaces"
+
+
+def _eligible_keys(
+    members: list[InterfaceRecord],
+    annotation_type: str,
+    assembly_metadata: dict,
+) -> tuple[set, str]:
+    """The interface keys that may serve as a denominator, and why.
+
+    For ligands this is the preferred-assembly members only. Mutations and
+    modifications come from per-entry endpoints with no assembly dimension, so
+    every member of the group is a valid denominator.
+    """
+    if annotation_type != "ligand":
+        return {r.key for r in members}, ELIGIBILITY_ALL
+    eligible = {
+        r.key for r in members
+        if (assembly_metadata.get((r.pdb_id, r.assembly_id), {}) or {}).get("preferred_assembly")
+    }
+    return eligible, ELIGIBILITY_PREFERRED
+
+
+# Reader-facing headings for the compact group report. The dataframe keeps its
+# own field names; only the displayed table is renamed, so that the notebook
+# speaks of interaction groups while `report` stays a stable schema.
+GROUP_REPORT_DISPLAY = (
+    ("cluster_id", "Interaction group"),
+    ("cluster_size", "Group size"),
+    ("n_pdb_entries", "PDB entries"),
+    ("n_distinct_fingerprints", "Distinct fingerprints"),
+    ("member_interfaces", "Member interfaces"),
+    ("experimental_methods", "Methods"),
+    ("resolution_range", "Resolution"),
+    ("interface_area_median", "Median area (Å²)"),
+    ("qc_warnings", "Quality flags"),
+)
+
+
+def format_group_report(report: pd.DataFrame) -> pd.DataFrame:
+    """Reader-facing view of `cluster_interpretation_report`. Presentation only.
+
+    Selects the columns that matter for judging a group and gives them
+    headings in the notebook's own terms. The report itself is unchanged, and
+    its `cluster_*` fields keep their names.
+
+    The annotation columns are deliberately left out: `cluster_ligands` states
+    a ligand frequency over the whole group, whereas `annotation_report` takes
+    it over the interfaces eligible for a PDBe Arpeggio annotation. Showing
+    both would offer the reader two different denominators for one quantity.
+    """
+    if report.empty:
+        return pd.DataFrame(columns=[name for _, name in GROUP_REPORT_DISPLAY])
+    present = [(field, name) for field, name in GROUP_REPORT_DISPLAY if field in report.columns]
+    return report[[field for field, _ in present]].rename(columns=dict(present))
+
+
+def annotation_report(
+    records: list[InterfaceRecord],
+    cluster_result: ClusterResult,
+    overlap: AnnotationOverlap,
+    assembly_metadata: dict[tuple[str, str], dict] | None = None,
+) -> pd.DataFrame:
+    """How annotations occur across interaction groups, one row per annotation.
+
+    Tidy: one row per interaction group, annotation type and annotation. An
+    annotation counts once per interface instance however many contact rows it
+    has, and supporting PDB entries are counted separately; both follow
+    `_annotation_occurrences`, the same rule the cluster report's annotation
+    columns use.
+
+    **Eligibility.** PDBe protein-ligand interactions are calculated using
+    Arpeggio for the preferred assembly, so a ligand frequency is taken over
+    preferred-assembly interface instances only; a non-preferred interface is
+    left out of the denominator rather than counted as ligand-negative.
+    Mutations and modifications come from per-entry endpoints with no assembly
+    dimension, so their denominator is the whole group. `eligibility_basis`
+    records which rule applied.
+
+    Eligibility is not the same as annotation availability: the current
+    endpoints provide no assembly-level flag proving that Arpeggio annotation
+    was computed for a given preferred assembly, so an observed zero and an
+    unavailable annotation cannot be told apart in every case.
+
+    These are counts over deposited interface instances, not enrichment tests.
+
+    Columns: cluster_id, annotation_type, annotation, annotation_detail,
+    n_interfaces_with_annotation, n_eligible_interfaces, group_size,
+    frequency_among_eligible, n_pdb_entries_with_annotation,
+    n_eligible_pdb_entries, group_pdb_entries, eligibility_basis.
+    """
+    metadata = assembly_metadata or {}
+    by_cluster: dict[int, list[InterfaceRecord]] = {}
+    for i, r in enumerate(records):
+        if i < len(cluster_result.flat_assignment):
+            by_cluster.setdefault(int(cluster_result.flat_assignment[i]), []).append(r)
+
+    rows = []
+    for cid, members in sorted(by_cluster.items(), key=lambda kv: (-len(kv[1]), kv[0])):
+        group_size = len(members)
+        group_entries = {r.pdb_id for r in members}
+        for annotation_type, attr, label_col, detail_col in ANNOTATION_STREAMS:
+            df = getattr(overlap, attr, None)
+            if df is None or df.empty or label_col not in df.columns:
+                continue
+            eligible, basis = _eligible_keys(members, annotation_type, metadata)
+            eligible_entries = {pdb for (pdb, _, _) in eligible}
+            by_interface, by_entry = _annotation_occurrences(df, eligible, label_col)
+            details = _annotation_details(df, label_col, detail_col)
+            for label, n_interfaces in by_interface.items():
+                rows.append({
+                    "cluster_id": cid,
+                    "annotation_type": annotation_type,
+                    "annotation": label,
+                    "annotation_detail": details.get(label, ""),
+                    "n_interfaces_with_annotation": int(n_interfaces),
+                    "n_eligible_interfaces": len(eligible),
+                    "group_size": group_size,
+                    "frequency_among_eligible": (
+                        int(n_interfaces) / len(eligible) if eligible else None
+                    ),
+                    "n_pdb_entries_with_annotation": int(by_entry.get(label, 0)),
+                    "n_eligible_pdb_entries": len(eligible_entries),
+                    "group_pdb_entries": len(group_entries),
+                    "eligibility_basis": basis,
+                })
+    columns = [
+        "cluster_id", "annotation_type", "annotation", "annotation_detail",
+        "n_interfaces_with_annotation", "n_eligible_interfaces", "group_size",
+        "frequency_among_eligible", "n_pdb_entries_with_annotation",
+        "n_eligible_pdb_entries", "group_pdb_entries", "eligibility_basis",
+    ]
+    out = pd.DataFrame(rows, columns=columns)
+    if out.empty:
+        return out
+    type_order = {name: i for i, (name, _, _, _) in enumerate(ANNOTATION_STREAMS)}
+    return (
+        out.assign(_t=out["annotation_type"].map(type_order))
+        .sort_values(
+            ["cluster_id", "_t", "frequency_among_eligible", "annotation"],
+            ascending=[True, True, False, True],
+        )
+        .drop(columns=["_t"])
+        .reset_index(drop=True)
+    )
+
+
+def _annotation_details(df: pd.DataFrame, label_col: str, detail_col: str | None) -> dict:
+    """First non-empty detail string seen for each annotation label."""
+    if detail_col is None or detail_col not in df.columns:
+        return {}
+    out: dict = {}
+    for label, detail in zip(df[label_col], df[detail_col]):
+        if label not in out and detail not in (None, ""):
+            out[label] = detail
+    return out
+
+
+def format_annotation_report(table: pd.DataFrame) -> pd.DataFrame:
+    """Reader-facing view of `annotation_report`. Presentation only.
+
+    The numeric table is left untouched. "Interfaces" is the count over
+    eligible interface instances with the percentage, and "Eligible" shows how
+    much of the group that denominator covered.
+    """
+    if table.empty:
+        return pd.DataFrame(columns=["Interaction group", "Type", "Annotation",
+                                     "Interfaces with annotation", "PDB entries with annotation",
+                                     "Eligible"])
+
+    def pct(value) -> str:
+        if value is None:
+            return ""
+        text = f"{value * 100:.1f}".rstrip("0").rstrip(".")
+        return f"{text}%"
+
+    label = {"ligand": "Ligand", "mutation": "Mutation", "modification": "Modification"}
+    annotation = [
+        a if not d else f"{a} ({d})"
+        for a, d in zip(table["annotation"], table["annotation_detail"])
+    ]
+    return pd.DataFrame({
+        "Interaction group": table["cluster_id"],
+        "Type": [label.get(t, t) for t in table["annotation_type"]],
+        "Annotation": annotation,
+        "Interfaces with annotation": [
+            f"{n}/{d} ({pct(f)})"
+            for n, d, f in zip(table["n_interfaces_with_annotation"],
+                               table["n_eligible_interfaces"],
+                               table["frequency_among_eligible"])
+        ],
+        "PDB entries with annotation": [
+            f"{n}/{d}" for n, d in zip(table["n_pdb_entries_with_annotation"],
+                                       table["n_eligible_pdb_entries"])
+        ],
+        "Eligible": [
+            f"{e}/{g} interfaces" for e, g in zip(table["n_eligible_interfaces"],
+                                                  table["group_size"])
+        ],
+    })
+
+
+def describe_missing_annotation_types(table: pd.DataFrame) -> str:
+    """One line naming the annotation streams with no observed occurrence."""
+    present = set(table["annotation_type"]) if not table.empty else set()
+    missing = [name for name, _, _, _ in ANNOTATION_STREAMS if name not in present]
+    if not missing:
+        return ""
+    names = [f"{m}s" for m in missing]
+    joined = names[0] if len(names) == 1 else " or ".join([", ".join(names[:-1]), names[-1]])
+    return f"No {joined} were observed at any interface in this dataset."
+
+
 def compare_clusters(
     records: list[InterfaceRecord],
     cluster_result: ClusterResult,
@@ -1073,17 +1305,8 @@ def _label_profile(
     if in_size == 0:
         return []
 
-    keys = list(zip(df["pdb_id"], df["assembly_id"], df["interface_id"]))
-    df_keyed = df.assign(_key=keys)
-
-    in_df = df_keyed[df_keyed["_key"].isin(member_keys)]
-    out_df = df_keyed[df_keyed["_key"].isin(non_member_keys)]
-
-    in_counts = in_df.drop_duplicates(["_key", label_col])[label_col].value_counts()
-    out_counts = out_df.drop_duplicates(["_key", label_col])[label_col].value_counts()
-    # Distinct PDB entries carrying each label, on each side.
-    in_entry_counts = in_df.drop_duplicates(["pdb_id", label_col])[label_col].value_counts()
-    out_entry_counts = out_df.drop_duplicates(["pdb_id", label_col])[label_col].value_counts()
+    in_counts, in_entry_counts = _annotation_occurrences(df, member_keys, label_col)
+    out_counts, out_entry_counts = _annotation_occurrences(df, non_member_keys, label_col)
 
     rows = []
     for label, in_n in in_counts.items():
@@ -1108,6 +1331,28 @@ def _label_profile(
         str(r["label"]),
     ))
     return rows
+
+
+def _annotation_occurrences(
+    df: pd.DataFrame, keys: set, label_col: str,
+) -> tuple[dict, dict]:
+    """Count each annotation label once per interface instance, and per entry.
+
+    Returns `(by_interface, by_entry)`, both keyed on the label. An annotation
+    with several contact rows on one interface counts once, and one PDB entry
+    contributing several interfaces counts once at entry level. `keys` is the
+    set of `(pdb_id, assembly_id, interface_id)` triples to count over, which
+    is how a caller restricts counting to eligible interfaces.
+    """
+    if df.empty or label_col not in df.columns or not keys:
+        return {}, {}
+    keyed = df.assign(_key=list(zip(df["pdb_id"], df["assembly_id"], df["interface_id"])))
+    subset = keyed[keyed["_key"].isin(keys)]
+    if subset.empty:
+        return {}, {}
+    by_interface = subset.drop_duplicates(["_key", label_col])[label_col].value_counts().to_dict()
+    by_entry = subset.drop_duplicates(["pdb_id", label_col])[label_col].value_counts().to_dict()
+    return by_interface, by_entry
 
 
 def _member_interfaces_with(df: pd.DataFrame, member_keys: set) -> set:

@@ -26,7 +26,7 @@ Python transcription of them. Three cells are injected by the test:
    never writes into the repository;
 3. a summary cell at the end, which prints the few values this test checks.
 
-No notebook cell is skipped or neutralised. All nineteen code cells execute,
+No notebook cell is skipped or neutralised. All twenty code cells execute,
 including the similarity plots, the residue-pair explorer and the Mol*
 rendering. The kernel runs in its own process, so the suite's in-process network
 guard does not reach it; the recorded router is what keeps this test offline,
@@ -141,7 +141,7 @@ def test_notebook_analysis_path_executes_on_recorded_data(executed_notebook):
     summary, output_dir, repo_export_existed = executed_notebook
 
     # Every code cell of the notebook ran; nbclient would have raised otherwise.
-    assert summary["n_notebook_code_cells"] == 19
+    assert summary["n_notebook_code_cells"] == 20
 
     # Offline: every request was served by the recorded router. The count is a
     # property of the frozen STING fixture, not of the live complex.
