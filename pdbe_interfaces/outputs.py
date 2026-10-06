@@ -27,7 +27,7 @@ import numpy as np
 import pandas as pd
 
 from pdbe_interfaces.annotations import AnnotationOverlap
-from pdbe_interfaces.representation import InterfaceRecord
+from pdbe_interfaces.representation import InterfaceRecord, is_homodimer
 from pdbe_interfaces.similarity import ClusterResult
 
 
@@ -244,6 +244,9 @@ def interface_frequency_summary(
     - `partner_1_labels`, `partner_2_labels`: list[str] of axis labels for
       the matrix, matching pair_matrix shape.
     - `n_interfaces`: total interface count.
+    - `symmetric`: True when the records are a homodimer, whose contacts are
+      unordered residue pairs, so `partner_1_*` holds the lower UniProt
+      position of each pair and `partner_2_*` the higher.
 
     Use the tables to surface "key residue pairs" (top of `pairs`) and "key
     residues" (top of `partner_*_residues`); use `pair_matrix` for a
@@ -252,6 +255,7 @@ def interface_frequency_summary(
     n = len(records)
     pmap = partner_map or {}
     rid = residue_identity if residue_identity is not None else _merge_residue_identity(records)
+    symmetric = any(is_homodimer(r.unp_accession_1, r.unp_accession_2) for r in records)
 
     pair_counts: Counter = Counter()
     p1_residue_counts: Counter = Counter()
@@ -335,6 +339,7 @@ def interface_frequency_summary(
         "partner_1_labels": [res_label(k) for k in p1_keys],
         "partner_2_labels": [res_label(k) for k in p2_keys],
         "n_interfaces": n,
+        "symmetric": symmetric,
     }
 
 
@@ -1556,6 +1561,11 @@ def export_interface_frequency_json(
     n_interfaces = len(records)
     pmap = partner_map or {}
     residue_identity = _merge_residue_identity(records)
+    # A homodimer's contacts are canonicalised to unordered residue pairs, so
+    # the aggregate rows below describe UniProt positions, not partner copies.
+    symmetric = any(
+        is_homodimer(r.unp_accession_1, r.unp_accession_2) for r in records
+    )
 
     partner_meta = _build_partner_metadata(records, pmap, complex_details)
 
@@ -1583,7 +1593,7 @@ def export_interface_frequency_json(
         aa = residue_identity.get(key, "")
         residue_frequencies.append({
             "unp_accession": acc,
-            "role": int(role),
+            "role": None if symmetric else int(role),
             "unp_residue_number": int(pos),
             "unp_residue_label": f"{aa}{pos}",
             "n_interfaces": int(count),
@@ -1591,7 +1601,7 @@ def export_interface_frequency_json(
             "conservation_level": _conservation_level(frac),
         })
     residue_frequencies.sort(
-        key=lambda r: (r["role"], r["unp_accession"], r["unp_residue_number"])
+        key=lambda r: (r["role"] or 0, r["unp_accession"], r["unp_residue_number"])
     )
 
     contact_frequencies = []
@@ -1603,8 +1613,8 @@ def export_interface_frequency_json(
             bond = None
         frac = (count / n_interfaces) if n_interfaces else 0.0
         entry = {
-            "partner_1": _residue_dict(k1, residue_identity),
-            "partner_2": _residue_dict(k2, residue_identity),
+            "partner_1": _residue_dict(k1, residue_identity, symmetric),
+            "partner_2": _residue_dict(k2, residue_identity, symmetric),
             "n_interfaces": int(count),
             "frequency": round(frac, 4),
         }
@@ -1612,9 +1622,9 @@ def export_interface_frequency_json(
             entry["bond_type"] = bond
         contact_frequencies.append(entry)
     contact_frequencies.sort(key=lambda r: (
-        r["partner_1"]["role"],
+        r["partner_1"]["role"] or 0,
         r["partner_1"]["unp_residue_number"],
-        r["partner_2"]["role"],
+        r["partner_2"]["role"] or 0,
         r["partner_2"]["unp_residue_number"],
         r.get("bond_type") or "",
     ))
@@ -1634,6 +1644,11 @@ def export_interface_frequency_json(
                 "UniProt residue positions"
             ),
             "typed_contacts": bool(typed_contacts),
+            # "unordered": homodimer contacts were collapsed onto unordered
+            # UniProt residue pairs, so `role` is null in the frequency rows
+            # below. "ordered": heterodimer, partner_1 is role 1 throughout.
+            "contact_symmetry": "unordered" if symmetric else "ordered",
+            "homodimer_symmetry_collapsed": bool(symmetric),
         },
         "partners": partners,
         "residue_frequencies": residue_frequencies,
@@ -1660,12 +1675,19 @@ def _conservation_level(frac: float) -> str:
     return "rare"
 
 
-def _residue_dict(key: tuple, residue_identity: dict) -> dict:
+def _residue_dict(key: tuple, residue_identity: dict, symmetric: bool = False) -> dict:
+    """One residue of an exported frequency row.
+
+    `symmetric` marks a homodimer aggregate, where the two copies were
+    collapsed into one unordered key: `role` is then `null`, because the
+    frequency describes a UniProt position rather than one copy of it. The
+    `partners` array still carries both real roles.
+    """
     acc, pos, role = key
     aa = residue_identity.get(key, "")
     return {
         "unp_accession": acc,
-        "role": int(role),
+        "role": None if symmetric else int(role),
         "unp_residue_number": int(pos),
         "unp_residue_label": f"{aa}{pos}",
     }

@@ -166,8 +166,15 @@ def pair_frequency_heatmap(freq: dict, top_n: int, scope: str) -> None:
         cbar_kws={"label": "Interface frequency"},
         linewidths=0.3, linecolor="white",
     )
-    ax.set_xlabel("Partner 2 residue")
-    ax.set_ylabel("Partner 1 residue")
+    # A homodimer's contacts are unordered pairs ordered by UniProt position,
+    # so the axes hold the lower and the higher position of each pair rather
+    # than one partner each.
+    if freq.get("symmetric"):
+        ax.set_xlabel("Residue position (higher)")
+        ax.set_ylabel("Residue position (lower)")
+    else:
+        ax.set_xlabel("Partner 2 residue")
+        ax.set_ylabel("Partner 1 residue")
     ax.set_title(f"Residue-pair frequency {scope}")
     plt.tight_layout()
     plt.show()
