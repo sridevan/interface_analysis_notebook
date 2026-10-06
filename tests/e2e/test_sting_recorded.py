@@ -162,6 +162,38 @@ def test_sting_recorded_reproduces_known_rewiring(sting):
     assert len(view) == len(table)
 
 
+def test_sting_recorded_annotation_report_uses_preferred_assembly_denominators(sting):
+    run = sting
+    # 11gm_1 and 11gn_1 are the complex's two non-preferred assemblies.
+    preferred = {k: v["preferred_assembly"] for k, v in run.assembly_metadata.items()}
+    assert {k for k, v in preferred.items() if not v} == {("11gm", "1"), ("11gn", "1")}
+
+    table = outputs.annotation_report(run.records, run.cluster_result, run.overlap,
+                                      assembly_metadata=run.assembly_metadata)
+    # Only ligands are observed at STING interfaces.
+    assert set(table.annotation_type) == {"ligand"}
+    assert set(table.eligibility_basis) == {"preferred_assembly"}
+    assert "mutations or modifications" in outputs.describe_missing_annotation_types(table)
+
+    large = table[table.cluster_id == run.cluster_of("11gl")]
+    # The nine-member group holds both non-preferred interfaces, so the ligand
+    # denominator is seven, not nine, and they are not counted as negatives.
+    assert set(large.n_eligible_interfaces) == {7} and set(large.group_size) == {9}
+    assert sorted(large.annotation) == ["1YD", "2BA", "V67", "ZNT"]
+    assert set(large.n_interfaces_with_annotation) == {1}
+
+    small = table[table.cluster_id == run.cluster_of("4kby")]
+    assert set(small.n_eligible_interfaces) == {3} and set(small.group_size) == {3}
+    assert sorted(small.annotation) == ["A1ELY", "C2E"]
+
+    # No ligand row in this dataset is attributed to a non-preferred interface.
+    attributed = set(zip(run.overlap.ligands.pdb_id, run.overlap.ligands.assembly_id))
+    assert all(preferred.get(k) for k in attributed)
+
+    # Reporting annotations leaves the grouping untouched.
+    assert run.report.cluster_size.tolist() == [9, 3, 2]
+
+
 def test_sting_recorded_maps_known_interface_ligands(sting):
     run = sting
     ligands = run.overlap.ligands
