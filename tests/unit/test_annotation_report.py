@@ -212,11 +212,11 @@ def test_formatted_view_reports_occurrence_and_eligibility_separately():
 
     assert list(view.columns) == ["Interaction group", "Type", "Annotation",
                                   "Interfaces with annotation",
-                                  "PDB entries with annotation", "Eligible"]
+                                  "PDB entries with annotation", "Eligible interfaces"]
     row = view.iloc[0]
     assert (row.Type, row.Annotation) == ("Ligand", "ATP")
     assert row["Interfaces with annotation"] == "1/2 (50%)"
-    assert row.Eligible == "2/3 interfaces"
+    assert row["Eligible interfaces"] == "2/3"
     assert table.equals(outputs.annotation_report(records, _cluster(3), overlap,
                                                   assembly_metadata=meta))
 
