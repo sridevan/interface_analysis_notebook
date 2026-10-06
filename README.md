@@ -1,21 +1,51 @@
-# Aggregated Interface Interaction Analysis in Dimers
+# Interface Interaction Analysis in Dimers
 
-Jupyter notebook implementation of the Aggregated Interface Interaction Analysis workflow,
-for **dimeric complexes only**.
+Compares equivalent protein–protein interface instances across the deposited assembly
+instances assigned to the same dimeric PDBe-KB complex, identifies recurring residue-contact
+patterns, and examines conserved and differential contacts together with the ligands,
+mutations and modifications associated with them.
 
-Compares the protein–protein interface across all deposited structures of a single dimeric
-complex by interaction-pair similarity, then overlays mutations, modifications, and ligands.
-Cluster representatives are rendered in Mol*, and per-residue conservation plus
-residue–residue contact frequencies are exported as JSON for downstream visualisation
-(e.g. AFDB-style Mol* colouring).
+## Current scope
 
-The complex is named by a PDB entry id or a PDBe-KB complex id, and both components must map
-to UniProt. Complexes with more than two components are rejected, and assembly instances
-carrying an additional bound macromolecule are excluded: chain correspondence cannot be
-determined beyond two components, so those interfaces are not comparable across structures.
+- dimeric PDBe-KB complexes, with both components mapped to UniProt;
+- interfaces are compared as UniProt-mapped residue-contact fingerprints;
+- those fingerprints currently represent **hydrogen bonds and salt bridges**, the interaction
+  types the PDBe/PISA interface data expose at residue-pair level;
+- similarity is Jaccard, grouped by average-linkage hierarchical clustering into descriptive
+  **interaction groups**;
+- an interaction group is a similarity pattern, not automatically a biological or
+  conformational state.
 
-The notebook holds the narrative, the configuration and the guidance for reading each
-output; all implementation lives in `pdbe_interfaces/`.
+Complexes with more than two components are rejected, and assembly instances carrying an
+additional bound macromolecule are excluded, because chain correspondence cannot be
+determined beyond two components.
+
+## Workflow
+
+1. retrieve interface instances for a PDBe-KB complex;
+2. build UniProt-mapped contact fingerprints;
+3. calculate pairwise Jaccard similarity;
+4. group similar interfaces;
+5. add ligand, mutation and modification annotations;
+6. inspect group composition and differential contacts;
+7. visualise representatives and export frequency data.
+
+## The notebook
+
+[`notebook.ipynb`](notebook.ipynb) is the recommended scientific walkthrough and the
+authoritative source for interpretation. It explains what each step measures, how to read
+each output, and the limitations and denominators that apply, including which interfaces
+contribute to each frequency. All implementation lives in `pdbe_interfaces/`.
+
+## Outputs
+
+- per-interface contact summaries and bond-type counts;
+- interaction groups, with composition, quality flags and distinct-fingerprint counts;
+- annotation occurrence by interaction group;
+- conserved contacts and differential contacts between groups;
+- a representative structure per group rendered in Mol\*;
+- a JSON export of per-residue conservation and residue–residue contact frequencies, for
+  downstream visualisation such as Mol\* colouring.
 
 See `spec/` for the full specification (`spec/new/final_spec.md` is the current spec; `spec/old/` holds the earlier draft and the implementation brief).
 
@@ -71,25 +101,29 @@ Detailed testing rationale and regression-case documentation are under
 
 ## Interpreting the output
 
-Scope and limitations are documented in the notebook, as guidance at the phase each applies
-to. In short: the contact and annotation columns are counts rather than enrichment
-statistics, since clusters are built from the same contacts those columns list; deposited
-structures are not independent observations, so frequencies describe the deposition set
-analysed; and the interaction types available at residue-pair level should be checked per
-complex before interpreting any comparison.
+The notebook documents scope and limitations at the section each applies to, and section 11
+collects them into a checklist. In short: contact and annotation columns are counts rather
+than enrichment statistics, since groups are built from the same contacts those columns
+list; several interface instances from one PDB entry are not independent observations; and
+only the interaction types present in the response, currently hydrogen bonds and salt
+bridges, enter the comparison.
+
+Frequencies describe how often a feature occurs among the available deposited structures.
+They should not be interpreted as estimates of the relative populations of conformational or
+binding states in solution.
 
 ## Working example
 
 `11gl` (STING, Complex Portal `CPX-2128`; resolved to complex `PDB-CPX-172174` at the time
 of writing): a homodimer small enough to read end to end while still exercising the
-clustering, rewiring and QC output. When last run it gave 14 interfaces from 12 entries, all
-X-ray at 1.29 to 2.75 Å, separating into four states of 9, 3, 1 and 1, with ligands in three
-of them. Those figures describe the structures deposited at that point and grow as new ones
+clustering, differential-contact and QC output. When last run it gave 14 interface instances
+from 12 entries, all X-ray at 1.29 to 2.75 Å, separating into three interaction groups of 9,
+3 and 2, each with at least one ligand at the interface. Those figures describe the structures deposited at that point and grow as new ones
 are released; the workflow reports whatever PDBe currently returns. Edit the `Config` instance in the first
 cell of the notebook to target a different complex.
 
 Other useful cases: `1spq` (triosephosphate isomerase) is a homodimer whose interface is
-invariant, forming a single cluster at every cut; `6m0j` (Spike RBD with ACE2) is a
+invariant, forming a single interaction group at every cut; `6m0j` (Spike RBD with ACE2) is a
 much larger heterodimer; KRAS with RAF1 (`PDB-CPX-130306` at the time of writing) is a
 smaller heterodimer.
 
@@ -107,7 +141,7 @@ field in the `pdbe_interfaces.config.Config` docstring. The main ones:
 - `max_resolution`: exclude assemblies above this Å threshold and those with no reported resolution; `None` keeps everything.
 - `mutation_type_filter`: mutation types kept from the annotation API; the default keeps engineered mutations only, add `"Conflict"` for natural variants.
 - `ligand_blocklist`: components excluded from the ligand analysis (ions, buffers, cryoprotectants).
-- `cluster_distance_cut`: dendrogram cut height in `1 - Jaccard` units, which sets how many interface interaction states are reported.
+- `cluster_distance_cut`: dendrogram cut height in `1 - Jaccard` units, which sets how many interaction groups are reported.
 - `conservation_threshold`: fraction of interfaces at which a residue or contact counts as conserved.
 - `output_dir`: destination for the JSON export. Defaults to `interface_frequencies/`; `None` writes to the working directory.
 
@@ -151,7 +185,7 @@ names, column names and printed output the package calls it a `cluster` or an
 4. Compare interfaces (Jaccard similarity)
 5. Group similar interfaces (hierarchical clustering)
 6. Add ligand, mutation and modification annotations
-7. Inspect group composition and quality
+7. Inspect group composition and quality, and annotation occurrence by interaction group
 8. Compare conserved and differential contacts (overall conservation, residue-pair explorer with contact heatmap, differential contacts between the two main groups)
 9. Visualise representative interfaces in Mol*
 10. Export per-residue conservation and residue–residue contact frequencies (`{complex_id}.json`)
@@ -161,9 +195,9 @@ names, column names and printed output the package calls it a `cluster` or an
 
 Dimer complexes only, with both components mapped to UniProt: chain correspondence cannot
 be determined for instances with more than two components, and the `interface_interactions`
-endpoint returns dimers only. Single complex per run. The analysis is
-descriptive throughout: contacts and annotations are reported as counts inside and outside
-each cluster, with no enrichment statistic or significance threshold.
+endpoint returns dimers only. Single complex per run. The analysis is descriptive
+throughout: contacts and annotations are reported as counts inside and outside each
+interaction group, with no enrichment statistic or significance threshold.
 
 ## Licence
 

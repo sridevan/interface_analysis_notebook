@@ -1102,7 +1102,7 @@ def format_annotation_report(table: pd.DataFrame) -> pd.DataFrame:
     if table.empty:
         return pd.DataFrame(columns=["Interaction group", "Type", "Annotation",
                                      "Interfaces with annotation", "PDB entries with annotation",
-                                     "Eligible"])
+                                     "Eligible interfaces"])
 
     def pct(value) -> str:
         if value is None:
@@ -1129,9 +1129,9 @@ def format_annotation_report(table: pd.DataFrame) -> pd.DataFrame:
             f"{n}/{d}" for n, d in zip(table["n_pdb_entries_with_annotation"],
                                        table["n_eligible_pdb_entries"])
         ],
-        "Eligible": [
-            f"{e}/{g} interfaces" for e, g in zip(table["n_eligible_interfaces"],
-                                                  table["group_size"])
+        "Eligible interfaces": [
+            f"{e}/{g}" for e, g in zip(table["n_eligible_interfaces"],
+                                       table["group_size"])
         ],
     })
 
