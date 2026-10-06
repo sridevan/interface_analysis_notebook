@@ -14,7 +14,7 @@ This specification has been updated to match the implemented notebook. Changes f
 - **Scope and limitations are stated in the notebook itself**, at the phase where each applies.
 - **Residue correspondence is decided per residue, and contact-pair comparability per contact.** A residue with a UniProt accession and position keeps its mapping whether or not its contact partner maps; a contact enters the comparison representation only when both sides map (*Residue correspondence and contact-pair comparability*).
 - **Interfaces with no comparable contact pair are held out of the comparison.** They stay in the run for provenance and annotation, with the reason recorded (*Comparable-interface eligibility*; *Failure handling and empty-result behaviour*).
-- **Homodimer orientation dependence** is recorded as a known limitation with the evidence from an exploratory diagnostic (*Known Limitation: Homodimer Orientation Dependence*).
+- **Homodimer orientation dependence** was a known limitation and is now resolved: homodimer contacts are canonicalised to unordered UniProt residue pairs (*Homodimer Contact Symmetry*), which removes it at the representation layer.
 
 ---
 
@@ -181,7 +181,7 @@ This change makes the workflow safe at scale (large multimer complexes, when v2 
 ### Edge cases
 
 - **PDB entries with multiple assemblies, or multiple interfaces per assembly,** contribute multiple rows to the structure table. This is correct behaviour, not deduplication.
-- **Homodimers.** Both partners share a UniProt accession; role distinguishes them. Symmetric contacts (e.g. `(chain1:25, chain2:87)` and `(chain1:87, chain2:25)`) are preserved as distinct ordered tuples in the interaction set, which is the correct physical behaviour. Because the two partners have the same identity, the partner-consistency check cannot act on homodimers, and the orientation PISA reports for each instance is used as-is; see *Known Limitation: Homodimer Orientation Dependence*.
+- **Homodimers.** Both partners share a UniProt accession, so the two copies are interchangeable and the partner-consistency check has nothing to act on. Reciprocal contacts (e.g. `(chain1:25, chain2:87)` and `(chain1:87, chain2:25)`) are one relationship seen from either copy, and `representation.canonical_uniprot_pair` reduces them to one key: both residues carry `HOMODIMER_ROLE` and the pair is ordered by UniProt position. See *Homodimer Contact Symmetry*.
 - **No mutations or no ligands returned.** Not an error. Annotation lists are empty; structure table columns are zero.
 - **Two distinct author residues mapping to the same UniProt position** (microheterogeneity, alternate residue identities). Detected per interface during Phase 2: the first-seen author residue keeps the mapping, later colliding author residues are not entered into the residue→UniProt map, the collision count is logged at WARNING and recorded per interface (`n_microheterogeneity`). Mapping is decided per residue, so this rule applies to each side of a contact independently.
 
@@ -320,7 +320,7 @@ The notebook is the deliverable. There is no CLI in v1. Users open `notebook.ipy
 
 Each row in the PISA response is an atom-level contact. Atom-level contacts sharing the same key (residue pair plus `bond_type`) collapse to a single set element. A residue pair forming contacts of different `bond_type` values appears as multiple elements. Atom-level detail is not retained.
 
-Aggregation is per interface and per key. For homodimers, ordering preserves both directions of a symmetric contact as distinct elements (correct physical behaviour).
+Aggregation is per interface and per key. For homodimers the key is an unordered residue pair, so the two directions of a reciprocal contact aggregate as one element, and a UniProt residue counts once per interface however many copies carry it.
 
 ### Residue correspondence and contact-pair comparability
 
@@ -492,6 +492,8 @@ A self-contained JSON file written to `Config.output_dir` (or the current workin
 | `representation` | fixed string: `"UniProt residue-level interface interactions"` |
 | `contact_definition` | fixed string: `"PISA-derived residue-residue interface interactions mapped to UniProt residue positions"` |
 | `typed_contacts` | bool, true when bond type is part of the contact key |
+| `contact_symmetry` | `"unordered"` for a homodimer, whose contacts are collapsed onto unordered UniProt residue pairs; `"ordered"` for a heterodimer |
+| `homodimer_symmetry_collapsed` | bool, true when `contact_symmetry` is `"unordered"` |
 
 **`partners` array.** One object per `(unp_accession, role)` pair. Roles observed in the records and in `partner_map` are unioned, so homodimers (one accession, two roles) and heterodimers both expose role 1 *and* role 2:
 
@@ -507,7 +509,9 @@ A self-contained JSON file written to `Config.output_dir` (or the current workin
 
 `gene_name` and `name` are populated from `complex_details["participants"]` when the caller passes `complex_details`; otherwise they are `null`. The `label` field follows a fallback rule: `gene_name` → `name` → `partner_map` value with `" (role 1)"` / `" (role 2)"` suffixes stripped → `unp_accession`. No additional API calls are made.
 
-**`residue_frequencies` array.** One object per UniProt residue observed at any interface, with `frequency = n_interfaces_with_residue / metadata.n_interfaces`. Each residue is counted at most once per interface. Sorted deterministically by `(role, unp_accession, unp_residue_number)`:
+**`residue_frequencies` array.** One object per UniProt residue observed at any interface, with `frequency = n_interfaces_with_residue / metadata.n_interfaces`. Each residue is counted at most once per interface. Sorted deterministically by `(role, unp_accession, unp_residue_number)`.
+
+`role` is `null` when `metadata.contact_symmetry` is `"unordered"`: a homodimer row describes a UniProt position rather than one copy of the protein, and the residue is counted once per interface however many copies carry a contact. For a heterodimer `role` is 1 or 2 as before. The `partners` array always carries the real roles.
 
 ```json
 {
@@ -532,7 +536,9 @@ A self-contained JSON file written to `Config.output_dir` (or the current workin
 
 `conservation_level` is **not** included on `contact_frequencies` rows; conversely, `residue_frequencies` rows do **not** carry `contact_types` or bond information.
 
-**`contact_frequencies` array.** One object per UniProt-keyed residue–residue contact observed at any interface, with `frequency = n_interfaces_with_contact / metadata.n_interfaces`. Each contact is counted at most once per interface. When `typed_contacts=True` (default) the contact key includes `bond_type`, so a residue pair seen with both a hydrogen bond and a salt bridge contributes two rows; when `typed_contacts=False`, bond types are collapsed and `bond_type` is omitted from the row. Sorted by `(partner_1.role, partner_1.unp_residue_number, partner_2.role, partner_2.unp_residue_number, bond_type)`:
+**`contact_frequencies` array.** One object per UniProt-keyed residue–residue contact observed at any interface, with `frequency = n_interfaces_with_contact / metadata.n_interfaces`. Each contact is counted at most once per interface. When `typed_contacts=True` (default) the contact key includes `bond_type`, so a residue pair seen with both a hydrogen bond and a salt bridge contributes two rows, for a homodimer as well as a heterodimer; when `typed_contacts=False`, bond types are collapsed and `bond_type` is omitted from the row. Sorted by `(partner_1.role, partner_1.unp_residue_number, partner_2.role, partner_2.unp_residue_number, bond_type)`.
+
+When `metadata.contact_symmetry` is `"unordered"` both `partner_1.role` and `partner_2.role` are `null` and the contact is written with the lower UniProt position as `partner_1`, so a reciprocal contact appears once.
 
 ```json
 {
@@ -1208,11 +1214,40 @@ In the insulin complex `PDB-CPX-130512`, all 163 interfaces carry two interchain
 
 Investigation detail, including the classification rules and the remediation route, is held internally rather than in this repository.
 
-## Known Limitation: Homodimer Orientation Dependence
+## Homodimer Contact Symmetry
+
+The two copies of a homodimer are the same protein, so which copy PISA lists
+first is an artefact of the deposition rather than a property of the interface.
+`representation.canonical_uniprot_pair` therefore reduces a homodimer contact to
+an unordered pair of UniProt residues: both residues carry `HOMODIMER_ROLE`
+(role 1) and the pair is ordered by UniProt position. `bond_type` is kept, so
+one residue pair made by a hydrogen bond and by a salt bridge remains two typed
+contacts, and the untyped view drops only the bond type as before. Heterodimer
+contacts are untouched: the two partners are different proteins, so which side a
+residue sits on is part of the contact's identity.
+
+The rule is applied once, where `uniprot_pairs` is built, so fingerprints,
+Jaccard similarity, clustering, conservation, the residue-pair explorer, the
+differential-contact table and the JSON export all inherit it. The deposited
+structural mapping is untouched: `author_pairs` and `author_to_uniprot` keep the
+chains and roles PISA reported, which is what annotation joins and the Mol\*
+views read.
+
+Two consequences follow for homodimers. A reciprocal contact is one row rather
+than two, so fingerprints are roughly half their former size, and a UniProt
+residue is counted once per interface however many copies of it carry a contact.
+The JSON export declares this in `metadata.contact_symmetry` and sets `role` to
+`null` in `residue_frequencies` and in both sides of `contact_frequencies`,
+since those rows describe UniProt positions rather than partner copies; the
+`partners` array still carries both real roles. The residue-pair heatmap labels
+its axes "Residue position (lower)" and "Residue position (higher)" for the same
+reason.
+
+## Superseded Limitation: Homodimer Orientation Dependence
 
 **Homodimer interfaces.** Contacts are compared using the partner orientation reported for each structural instance. Because the two partners have the same molecular identity, the partner-consistency check has nothing to act on, and equivalent homodimer interfaces reported with opposite partner orientations can appear less similar than they are. How much less depends on the interface: a fully symmetric contact set is unaffected, a partially symmetric one keeps the contacts that are their own mirror image, and an asymmetric one with a sparse fingerprint can lose all overlap. An exploratory diagnostic indicates that this has little effect on most interfaces but can influence clustering for sparse contact fingerprints. Singleton or small states in homodimers with few mapped contacts should therefore be interpreted with caution, and it is worth checking whether their members are assemblies of the same entry.
 
-**Production behaviour.** Unchanged. Contacts remain ordered `(role 1, role 2)` tuples for homodimers, the Jaccard measure, the clustering method, and the rewiring and annotation logic are as described elsewhere in this document, and no minimum-contact threshold is applied. The evidence below supports an interpretation note, not a redesign; global canonicalisation of homodimer contacts, or an orientation-aware similarity, would be a separate decision.
+**Resolved.** Homodimer contacts are now canonicalised to unordered UniProt residue pairs, which removes the dependence described here; see *Homodimer Contact Symmetry*. The Jaccard measure, the clustering method and the rewiring and annotation logic are unchanged, and no minimum-contact threshold is applied. The diagnostic below is kept as the evidence that motivated the change.
 
 **Developer note: exploratory diagnostic (2026-09-23).** `analysis/homodimer_orientation_diagnostic.py` compared, for every pair of comparable interface instances of a homodimer complex, the production similarity with the similarity after a global exchange of the two copies for one instance (`delta = swapped − direct`), and the clustering at the default cut against a diagnostic `max(direct, swapped)` similarity. The sample was 28 homodimer complexes with 474 interfaces and 6,479 pairwise comparisons, drawn from homodimer complexes with 8 to 60 assemblies in the PDBe-KB complexes listing, with STING and triosephosphate isomerase included deliberately. It is an exploratory diagnostic sample, not an unbiased PDB-wide prevalence estimate, and the figures describe pairwise comparisons within that sample only.
 

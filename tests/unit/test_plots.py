@@ -67,3 +67,27 @@ def test_cluster_dendrogram_passes_the_cut_to_the_plot(monkeypatch):
     plots.cluster_dendrogram(result, records, 0.25)
     assert seen["color_threshold"] > 0.25 and seen["color_threshold"] < 0.25 + 1e-9
     assert seen["above_threshold_color"] == plots.ABOVE_CUT_COLOUR
+
+
+def test_heatmap_axis_labels_follow_the_contact_representation(monkeypatch):
+    """A homodimer's axes are the lower and higher position of an unordered
+    pair; a heterodimer's are one partner each."""
+    import numpy as np
+
+    freq = {
+        "pair_matrix": np.ones((1, 1)),
+        "partner_1_labels": ["Sting1:D209"], "partner_2_labels": ["Sting1:A232"],
+        "partner_1_residues": __import__("pandas").DataFrame([{"position": 209}]),
+        "partner_2_residues": __import__("pandas").DataFrame([{"position": 232}]),
+        "n_interfaces": 1,
+    }
+    monkeypatch.setattr(plots.plt, "show", lambda: None)
+
+    plots.pair_frequency_heatmap({**freq, "symmetric": True}, 5, "across 1 interfaces")
+    ax = plots.plt.gca()
+    assert (ax.get_ylabel(), ax.get_xlabel()) == (
+        "Residue position (lower)", "Residue position (higher)")
+
+    plots.pair_frequency_heatmap({**freq, "symmetric": False}, 5, "across 1 interfaces")
+    ax = plots.plt.gca()
+    assert (ax.get_ylabel(), ax.get_xlabel()) == ("Partner 1 residue", "Partner 2 residue")

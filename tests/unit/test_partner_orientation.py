@@ -2,9 +2,9 @@
 
 Heterodimer: the majority `(unp_accession_1, unp_accession_2)` ordering is
 canonical and minority records have their roles reversed. Homodimer: both
-accessions are equal, so the check cannot act, and ordered contact tuples are
-compared as-is. The homodimer tests record that behaviour without deciding
-whether it is the right one; see spec/new/testing_tranche1_report.md.
+accessions are equal, so the check cannot act and has nothing to do; the two
+copies are instead made interchangeable in the contact key itself, by
+`representation.canonical_uniprot_pair`, which these tests cover.
 """
 
 from __future__ import annotations
@@ -116,7 +116,7 @@ def test_records_matching_neither_ordering_are_left_alone(
     assert odd.uniprot_pairs == expected_pairs
 
 
-# --- Homodimer: current behaviour, recorded not endorsed ---------------------
+# --- Homodimer: the two copies are interchangeable ---------------------------
 
 
 def _homo_records(make_contact, make_interface, pairs_1, pairs_2):
@@ -131,39 +131,61 @@ def _homo_records(make_contact, make_interface, pairs_1, pairs_2):
     return _check(items)
 
 
+def _canonical_pairs(pairs):
+    """The contact keys `pairs` should produce: one role, ordered by position."""
+    return {
+        ((H, min(r1, r2), 1), (H, max(r1, r2), 1), "hydrogen_bond")
+        for (r1, r2) in pairs
+    }
+
+
 @pytest.mark.parametrize(
-    "pairs_1, pairs_2, expected_jaccard",
+    "pairs_1, pairs_2",
     [
-        # Same interface, chains listed in the opposite order: no shared tuples.
-        ([(10, 20), (11, 21)], [(20, 10), (21, 11)], 0.0),
-        # Only the self-symmetric contact (10, 10) survives a chain flip: 1 of 5.
-        ([(10, 20), (11, 21), (10, 10)], [(20, 10), (21, 11), (10, 10)], 0.2),
-        # PISA reporting both directions of every contact makes a flip harmless.
-        ([(10, 20), (20, 10)], [(20, 10), (10, 20)], 1.0),
+        # The same interface with the chains listed in the opposite order.
+        ([(10, 20), (11, 21)], [(20, 10), (21, 11)]),
+        # With a self-symmetric contact among them.
+        ([(10, 20), (11, 21), (10, 10)], [(20, 10), (21, 11), (10, 10)]),
+        # PISA reporting both directions of every contact.
+        ([(10, 20), (20, 10)], [(20, 10), (10, 20)]),
     ],
-    ids=["flipped-asymmetric", "flipped-partially-symmetric", "fully-symmetric"],
+    ids=["flipped-asymmetric", "flipped-partially-symmetric", "both-directions-reported"],
 )
-def test_homodimer_similarity_depends_on_chain_order(
-    pairs_1, pairs_2, expected_jaccard, make_contact, make_interface,
+def test_homodimer_similarity_is_independent_of_chain_order(
+    pairs_1, pairs_2, make_contact, make_interface,
 ):
-    """Current behaviour, as stated in spec/new/final_spec.md ("Edge cases:
-    Homodimers"): ordered tuples are preserved and the partner check cannot
-    act because both accessions are equal. Whether equivalent homodimer
-    interfaces with flipped PISA chain order should be treated as the same
-    state is an open design question, not settled by this test.
-    """
+    """Which copy PISA lists first is an artefact of the deposition, so two
+    recordings of the same interface must compare as identical."""
     rec1, rec2 = _homo_records(make_contact, make_interface, pairs_1, pairs_2)
 
     assert rec1.unp_accession_1 == rec1.unp_accession_2 == H
-    assert rec1.uniprot_pairs == {((H, r1, 1), (H, r2, 2), "hydrogen_bond") for (r1, r2) in pairs_1}
-    assert rec2.uniprot_pairs == {((H, r1, 1), (H, r2, 2), "hydrogen_bond") for (r1, r2) in pairs_2}
-    assert similarity.jaccard(rec1.uniprot_pairs, rec2.uniprot_pairs) == pytest.approx(expected_jaccard)
+    assert rec1.uniprot_pairs == _canonical_pairs(pairs_1)
+    assert rec2.uniprot_pairs == _canonical_pairs(pairs_2)
+    assert rec1.uniprot_pairs == rec2.uniprot_pairs
+    assert similarity.jaccard(rec1.uniprot_pairs, rec2.uniprot_pairs) == 1.0
 
 
-def test_homodimer_flipped_chain_order_separates_at_default_cut(make_contact, make_interface):
+def test_homodimer_flipped_chain_order_clusters_together(make_contact, make_interface):
     rec1, rec2 = _homo_records(
         make_contact, make_interface, [(10, 20), (11, 21)], [(20, 10), (21, 11)],
     )
     sim = similarity.jaccard_similarity_matrix([rec1.uniprot_pairs, rec2.uniprot_pairs])
     labels = similarity.cluster_interfaces(sim, distance_cut=0.6).flat_assignment
-    assert labels[0] != labels[1]
+    assert labels[0] == labels[1]
+
+
+def test_homodimer_keeps_the_deposited_chains_and_roles(make_contact, make_interface):
+    """Canonicalisation applies to the comparison key only."""
+    rec1, rec2 = _homo_records(
+        make_contact, make_interface, [(10, 20)], [(20, 10)],
+    )
+    # Author-space pairs follow the deposition, so the two differ.
+    assert rec1.author_pairs == {
+        (("1aaa", "A", 10, None), ("1aaa", "B", 20, None), "hydrogen_bond")}
+    assert rec2.author_pairs == {
+        (("2bbb", "A", 20, None), ("2bbb", "B", 10, None), "hydrogen_bond")}
+    # And so do the author-to-UniProt joins used by the annotation overlap.
+    assert rec1.author_to_uniprot == {
+        ("1aaa", "A", 10, None): (H, 10, 1), ("1aaa", "B", 20, None): (H, 20, 2)}
+    assert rec2.author_to_uniprot == {
+        ("2bbb", "A", 20, None): (H, 20, 1), ("2bbb", "B", 10, None): (H, 10, 2)}

@@ -36,10 +36,57 @@ def _norm_ins(value) -> Optional[str]:
     return s or None
 
 
+# The role carried by both residues of a canonicalised homodimer contact. The
+# two copies of the protein are interchangeable for aggregate analysis, so one
+# role is used for both sides and the pair is ordered by residue position; see
+# `canonical_uniprot_pair`.
+HOMODIMER_ROLE = 1
+
 AuthorResidueKey = tuple[str, str, int, Optional[str]]
 UniProtResidueKey = tuple[str, int, int]
 AuthorPair = tuple[AuthorResidueKey, AuthorResidueKey, str]
 UniProtPair = tuple[UniProtResidueKey, UniProtResidueKey, str]
+
+
+def is_homodimer(unp_accession_1: str, unp_accession_2: str) -> bool:
+    """True when both partners are the same protein, by UniProt accession.
+
+    Identity comes from the mapped accessions, never from display names or
+    author chain ids.
+    """
+    return bool(unp_accession_1) and unp_accession_1 == unp_accession_2
+
+
+def canonical_uniprot_pair(
+    u_key_1: UniProtResidueKey,
+    u_key_2: UniProtResidueKey,
+    bond_type: str,
+    homodimer: bool,
+) -> UniProtPair:
+    """The comparison key for one contact.
+
+    In a **heterodimer** the two partners are different proteins, so which side
+    a residue sits on is part of the contact's identity and the pair is left
+    exactly as the API reports it.
+
+    In a **homodimer** the two copies are interchangeable: the deposited
+    interface reports both `D209(chain A)-A232(chain B)` and
+    `A232(chain A)-D209(chain B)`, which are one relationship seen from either
+    copy, not two findings. Both residues are therefore given one role and the
+    pair is ordered by UniProt position, so the reciprocal pair collapses onto
+    the same key. `bond_type` is kept, so the same residue pair made by a
+    hydrogen bond and by a salt bridge stays two typed contacts.
+
+    This is the derived analysis key only. `author_pairs`, `author_to_uniprot`
+    and the API response keep the deposited chains and roles untouched.
+    """
+    if not homodimer:
+        return (u_key_1, u_key_2, bond_type)
+    first = (u_key_1[0], u_key_1[1], HOMODIMER_ROLE)
+    second = (u_key_2[0], u_key_2[1], HOMODIMER_ROLE)
+    if second < first:
+        first, second = second, first
+    return (first, second, bond_type)
 
 
 @dataclass
@@ -293,6 +340,7 @@ def _build_one(item: dict) -> InterfaceRecord:
         unp_accession_1=unp_acc_1 or "",
         unp_accession_2=unp_acc_2 or "",
     )
+    homodimer = is_homodimer(rec.unp_accession_1, rec.unp_accession_2)
 
     dropped = 0
     # Track UniProt -> first author key seen, to detect microheterogeneity.
@@ -340,6 +388,12 @@ def _build_one(item: dict) -> InterfaceRecord:
             # across structures.
             if c.get(f"unp_one_letter_code_{side}"):
                 rec.residue_identity[u_key] = c[f"unp_one_letter_code_{side}"]
+                if homodimer:
+                    # Also under the canonical key, which is what the
+                    # comparison pairs and every display path use.
+                    rec.residue_identity[(u_key[0], u_key[1], HOMODIMER_ROLE)] = (
+                        c[f"unp_one_letter_code_{side}"]
+                    )
             # Microheterogeneity check: two distinct author keys -> same UniProt key.
             prior = uniprot_to_first_author.get(u_key)
             if prior is None:
@@ -356,7 +410,9 @@ def _build_one(item: dict) -> InterfaceRecord:
             dropped += 1
             continue
 
-        rec.uniprot_pairs.add((u_key_1, u_key_2, bond_type))
+        rec.uniprot_pairs.add(
+            canonical_uniprot_pair(u_key_1, u_key_2, bond_type, homodimer)
+        )
 
     if dropped:
         log.warning(

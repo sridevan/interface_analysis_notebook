@@ -43,8 +43,15 @@ SB = "salt_bridge"
 
 
 def _contact(pos1, pos2, bond):
-    """Typed contact tuple in the production representation, role 1 then role 2."""
-    return ((STING, pos1, 1), (STING, pos2, 2), bond)
+    """Typed contact key in the production representation.
+
+    STING is a homodimer, so a contact is an unordered pair of UniProt
+    residues: both sides carry `HOMODIMER_ROLE` and the lower position is
+    written first.
+    """
+    assert pos1 <= pos2, "homodimer contact keys are ordered by UniProt position"
+    role = representation.HOMODIMER_ROLE
+    return ((STING, pos1, role), (STING, pos2, role), bond)
 
 
 def _members(run, cluster_id):
@@ -86,22 +93,25 @@ def test_sting_recorded_workflow_builds_expected_interface_states(sting):
     # Comparable-record selection (tranche 1.5): every instance has mapped contacts.
     assert run.comparable.excluded == []
     assert len(run.records) == 14
-    assert representation.bond_type_counts(run.records) == {HB: 169, SB: 35}
+    # Reciprocal homodimer contacts are one key, so these are roughly half the
+    # 204 ordered tuples the API reports.
+    assert representation.bond_type_counts(run.records) == {HB: 100, SB: 20}
 
     # Similarity matrix sanity, end to end.
     assert run.sim_typed.shape == (14, 14)
     assert np.array_equal(run.sim_typed, run.sim_typed.T)
     assert np.array_equal(np.diag(run.sim_typed), np.ones(14))
 
-    # Four states at the default cut of 0.6, sizes 9, 3, 1, 1.
-    assert run.cluster_sizes() == [1, 1, 3, 9]
+    # Three states at the default cut of 0.6, sizes 9, 3, 2.
+    assert run.cluster_sizes() == [2, 3, 9]
     assert run.cluster_of("11gl") == run.cluster_of("11gm") == run.cluster_of("11gm", "2")
     assert run.cluster_of("11gl") == run.cluster_of("4loj") == run.cluster_of("6xnn")
     assert run.cluster_of("4kby") == run.cluster_of("4kc0") == run.cluster_of("9ltf")
     assert run.cluster_of("11gl") != run.cluster_of("4kby")
-    assert len(_members(run, run.cluster_of("4jc5"))) == 1
-    assert len(_members(run, run.cluster_of("4lol"))) == 1
-    assert len({run.cluster_of(p) for p in ("11gl", "4kby", "4jc5", "4lol")}) == 4
+    # 4jc5 and 4lol share three contacts once chain order stops separating them.
+    assert run.cluster_of("4jc5") == run.cluster_of("4lol")
+    assert len(_members(run, run.cluster_of("4jc5"))) == 2
+    assert len({run.cluster_of(p) for p in ("11gl", "4kby", "4jc5")}) == 3
 
     # Structure table mirrors the comparable cohort and the labels.
     assert len(run.structure_table) == 14
@@ -116,13 +126,14 @@ def test_sting_recorded_reproduces_known_rewiring(sting):
     assert (len(large), len(small)) == (9, 3)
 
     # Hydrogen bonds present in every member of the large state and absent from
-    # the small one, in the production (role 1, role 2) representation.
-    large_only = [_contact(232, 209, HB), _contact(232, 260, HB), _contact(209, 233, HB)]
+    # the small one. Homodimer contacts are keyed as an unordered residue pair,
+    # so each is written with the lower UniProt position first.
+    large_only = [_contact(209, 232, HB), _contact(232, 260, HB), _contact(209, 233, HB)]
     for contact in large_only:
         assert _fraction_with(large, contact) == 1.0
         assert _fraction_with(small, contact) == 0.0
-    # Salt bridge in the opposite direction.
-    small_only = _contact(273, 156, SB)
+    # A salt bridge of the small state, likewise keyed low position first.
+    small_only = _contact(156, 273, SB)
     assert _fraction_with(small, small_only) == 1.0
     assert _fraction_with(large, small_only) == 0.0
 
@@ -133,10 +144,12 @@ def test_sting_recorded_reproduces_known_rewiring(sting):
         partner_map=run.partner_map, top_n=None,
     )
     direction = table.set_index("contact")["contact_direction"]
-    assert direction["Sting1:A232-Sting1:D209 hydrogen_bond"] == "higher in A"
+    assert direction["Sting1:D209-Sting1:A232 hydrogen_bond"] == "higher in A"
     assert direction["Sting1:A232-Sting1:Y260 hydrogen_bond"] == "higher in A"
     assert direction["Sting1:D209-Sting1:G233 hydrogen_bond"] == "higher in A"
-    assert direction["Sting1:D273-Sting1:H156 salt_bridge"] == "higher in B"
+    assert direction["Sting1:H156-Sting1:D273 salt_bridge"] == "higher in B"
+    # The reciprocal spelling of a contact is no longer a second row.
+    assert "Sting1:A232-Sting1:D209 hydrogen_bond" not in direction.index
     assert "shared core" not in set(direction)   # the two states share no core contact
     assert "rare" not in set(direction)          # the residual label is `other`
 
@@ -144,8 +157,8 @@ def test_sting_recorded_reproduces_known_rewiring(sting):
     view = outputs.differential_contact_table(table).set_index("Contact")
     a, b = run.cluster_of("11gl"), run.cluster_of("4kby")
     assert list(view.columns) == [f"Interaction group {a}", f"Interaction group {b}", "Pattern"]
-    assert view.loc["A232–D209 · H-bond"].tolist() == ["9/9 (100%)", "0/3 (0%)", f"Higher in group {a}"]
-    assert view.loc["D273–H156 · salt bridge"].tolist() == ["0/9 (0%)", "3/3 (100%)", f"Higher in group {b}"]
+    assert view.loc["D209–A232 · H-bond"].tolist() == ["9/9 (100%)", "0/3 (0%)", f"Higher in group {a}"]
+    assert view.loc["H156–D273 · salt bridge"].tolist() == ["0/9 (0%)", "3/3 (100%)", f"Higher in group {b}"]
     assert len(view) == len(table)
 
 
@@ -178,32 +191,32 @@ def test_sting_recorded_maps_known_interface_ligands(sting):
 def test_sting_recorded_reports_expected_qc_and_frequencies(sting):
     run = sting
     report = run.report.set_index("cluster_id")
-    assert report.cluster_size.tolist() == [9, 3, 1, 1]      # largest state first
+    assert report.cluster_size.tolist() == [9, 3, 2]         # largest state first
 
-    # 4jc5: singleton with only four residue pairs, flagged on both counts.
+    # 4jc5 and 4lol, the two sparsest interfaces, form the smallest state.
     row = report.loc[run.cluster_of("4jc5")]
-    assert (row.member_interfaces, row.n_pdb_entries) == ("4jc5_1_1", 1)
-    assert row.residue_pair_count_median == 4
-    assert "singleton" in row.qc_warnings
-    assert "sparse" in row.qc_warnings
-    # 4lol: singleton with seven pairs, so only the singleton flag.
-    row = report.loc[run.cluster_of("4lol")]
-    assert "singleton" in row.qc_warnings and "sparse" not in row.qc_warnings
+    assert (row.member_interfaces, row.n_pdb_entries) == ("4jc5_1_1, 4lol_1_1", 2)
+    assert row.n_distinct_fingerprints == 2
+    assert row.residue_pair_count_median == 5
+    assert row.qc_warnings == ""
     assert "1YE" in row.cluster_ligands
     # The large state carries no QC warning.
     assert report.loc[run.cluster_of("11gl")].qc_warnings == ""
 
-    # Aggregation runs over the 14 comparable instances; nothing reaches 0.8.
+    # Aggregation runs over the 14 comparable instances. A UniProt residue is
+    # counted once per interface however many copies of it carry a contact.
     freq = outputs.interface_frequency_summary(run.records, partner_map=run.partner_map)
     assert freq["n_interfaces"] == 14
     top = freq["partner_1_residues"].iloc[0]
-    assert (top.position, top.n_interfaces) == (209, 10)
+    assert (top.position, top.n_interfaces) == (235, 10)
     assert top.fraction == round(10 / 14, 3)
-    assert outputs.conserved_residues(run.records, threshold=0.8) == set()
+    assert outputs.conserved_residues(run.records, threshold=0.8) == {(STING, 235, 1)}
     assert outputs.conserved_residues(run.records, threshold=10 / 14) >= {(STING, 209, 1), (STING, 235, 1)}
-    # The large-state contact is present in exactly its nine members.
+    # The large-state contact is present in exactly its nine members, and only
+    # under the canonical spelling.
     pairs = freq["pairs"].set_index("contact")
-    assert pairs.loc["Sting1:A232 – Sting1:D209", "n_interfaces"] == 9
+    assert pairs.loc["Sting1:D209 – Sting1:A232", "n_interfaces"] == 9
+    assert "Sting1:A232 – Sting1:D209" not in pairs.index
 
 
 def test_sting_recorded_export_is_consistent(sting):
@@ -215,21 +228,31 @@ def test_sting_recorded_export_is_consistent(sting):
     assert written["metadata"]["n_interfaces"] == 14
     assert written["residue_frequencies"] == run.export["residue_frequencies"]
 
+    # The partner list still describes the deposited complex, both copies.
     partners = {(p["role"], p["unp_accession"], p["gene_name"]) for p in written["partners"]}
     assert partners == {(1, STING, "Sting1"), (2, STING, "Sting1")}
 
+    # STING is a homodimer, so the aggregate rows describe UniProt positions
+    # rather than one copy: the metadata says so and `role` is null.
+    assert written["metadata"]["contact_symmetry"] == "unordered"
+    assert written["metadata"]["homodimer_symmetry_collapsed"] is True
+
     residues = {(r["role"], r["unp_residue_number"]): r for r in written["residue_frequencies"]}
-    assert residues[(1, 209)]["n_interfaces"] == 10
-    assert residues[(1, 209)]["frequency"] == round(10 / 14, 4)
-    assert residues[(1, 209)]["conservation_level"] == "medium"
-    assert residues[(1, 209)]["unp_residue_label"] == "D209"
+    assert residues[(None, 209)]["n_interfaces"] == 10
+    assert residues[(None, 209)]["frequency"] == round(10 / 14, 4)
+    assert residues[(None, 209)]["conservation_level"] == "medium"
+    assert residues[(None, 209)]["unp_residue_label"] == "D209"
     assert all(0 < r["n_interfaces"] <= 14 for r in written["residue_frequencies"])
 
     contacts = {
         (c["partner_1"]["unp_residue_number"], c["partner_2"]["unp_residue_number"], c["bond_type"]): c
         for c in written["contact_frequencies"]
     }
-    assert contacts[(232, 209, HB)]["n_interfaces"] == 9
-    assert contacts[(273, 156, SB)]["n_interfaces"] == 3
-    assert all(c["partner_1"]["role"] == 1 and c["partner_2"]["role"] == 2
+    assert contacts[(209, 232, HB)]["n_interfaces"] == 9
+    assert contacts[(156, 273, SB)]["n_interfaces"] == 3
+    assert (232, 209, HB) not in contacts and (273, 156, SB) not in contacts
+    # A homodimer contact is an unordered pair of UniProt residues, so neither
+    # side carries a partner role.
+    assert all(c["partner_1"]["role"] is None and c["partner_2"]["role"] is None
                for c in written["contact_frequencies"])
+    assert {r["role"] for r in written["residue_frequencies"]} == {None}
